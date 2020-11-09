@@ -29,12 +29,12 @@ class UserController extends GenericController
               ]
             ]
           ],
-          'user_roles' => [
-            'is_child' => true,
-            'foreign_tables' => [
-              'role' => []
-            ]
-          ],
+          // 'user_roles' => [
+          //   'is_child' => true,
+          //   'foreign_tables' => [
+          //     'role' => []
+          //   ]
+          // ],
           // 'user_bio' => ['validation_required' => false],
           // 'user_addresses' => [],
           // 'user_educational_backgrounds' => [],

@@ -8,7 +8,7 @@ use App;
 class ServiceActionController extends GenericController
 {
   function __construct(){
-    $this->model = new App\ServiceAction();
+    $this->model = new App\Models\ServiceAction();
     $this->tableStructure = [
       'columns' => [
       ],

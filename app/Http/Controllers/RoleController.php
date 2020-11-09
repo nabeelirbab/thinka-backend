@@ -8,7 +8,7 @@ use App;
 class RoleController extends GenericController
 {
   function __construct(){
-    $this->model = new App\Role();
+    $this->model = new App\Models\Role();
     $this->tableStructure = [
       'columns' => [
       ],

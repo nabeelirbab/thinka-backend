@@ -13,6 +13,6 @@ class Service extends GenericModel
     'description' => 'required|unique:services,description,except,id'
   ];
   public function service_actions(){
-    return $this->hasMany('App\ServiceAction');
+    return $this->hasMany('App\Models\ServiceAction');
   }
 }
