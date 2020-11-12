@@ -29,12 +29,13 @@ class UserController extends GenericController
               ]
             ]
           ],
-          // 'user_roles' => [
-          //   'is_child' => true,
-          //   'foreign_tables' => [
-          //     'role' => []
-          //   ]
-          // ],
+          'user_roles' => [
+            'is_child' => true,
+            // 'validation_required' => false,
+            'foreign_tables' => [
+              'role' => []
+            ]
+          ],
           // 'user_bio' => ['validation_required' => false],
           // 'user_addresses' => [],
           // 'user_educational_backgrounds' => [],
@@ -72,10 +73,10 @@ class UserController extends GenericController
       $requestData['company_user'] = [
         "company_id" => 1
       ];
-      $requestData['user_roles'] = [
+      $requestData['user_roles'] = [[
         "company_id" => 1,
-        "role_id" => 103,
-      ];
+        "role_id" => 101,
+      ]];
       $resultObject = [
         "success" => false,
         "fail" => false

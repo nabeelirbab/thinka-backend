@@ -160,7 +160,6 @@ class GenericRetrieve extends Controller
                 $join->on(str_plural($mainTable).".id", '=', $tablePlural.".".str_singular($mainTable)."_id");
               });
             }else{
-
               $queryModel = $queryModel->join($tablePlural, $tablePlural.".id", "=", str_plural($mainTable).".".str_singular($table)."_id");
             }
           }
@@ -183,13 +182,16 @@ class GenericRetrieve extends Controller
     }
     public function removeUnwantedSelectForeignTable($requestQuerySelect, $tableStructure, $parentTable = null, &$requestPostQuery){
       $cleanRequestQuery = [];
+      
       foreach($requestQuerySelect as $selectIndex => $select){
         if(is_numeric($selectIndex) && isset($tableStructure['columns'][$select])){ // if column
           $cleanRequestQuery[$select] = null; // transform for numeric index to column index with null value
         }else if(isset($tableStructure['foreign_tables'][$selectIndex]) && isset($select['select'])){ // if with
           $parent = $tableStructure['true_table'];
           if(!($tableStructure['foreign_tables'][$selectIndex]['is_child'])){
-            $cleanRequestQuery[str_singular($selectIndex)."_id"] = null;
+            if(isset($tableStructure['columns'][str_singular($selectIndex)."_id"])){
+              $cleanRequestQuery[str_singular($selectIndex)."_id"] = null;
+            }
             $parent = null;
           }
           $requestPostQuery[$selectIndex] = ["select" => []];
@@ -204,7 +206,10 @@ class GenericRetrieve extends Controller
       }
       $cleanRequestQuery['id'] = null;
       if($parentTable){
-        $cleanRequestQuery[str_singular($parentTable)."_id"] = null;
+        // printR($tableStructure, str_singular($parentTable)."_id");
+        if(isset($tableStructure['columns'][str_singular($parentTable)."_id"])){
+          $cleanRequestQuery[str_singular($parentTable)."_id"] = null;
+        }
       }else{
 
       }

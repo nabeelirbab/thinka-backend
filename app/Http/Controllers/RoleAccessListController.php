@@ -7,7 +7,7 @@ use App;
 class RoleAccessListController extends GenericController
 {
   function __construct(){
-    $this->model = new App\RoleAccessList();
+    $this->model = new App\Models\RoleAccessList();
     $this->tableStructure = [
       'columns' => [
       ],

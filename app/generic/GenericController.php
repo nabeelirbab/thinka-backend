@@ -100,7 +100,6 @@ class GenericController extends Controller
       }
       return $this->responseGenerator->generate();
     }
-
     public function update(Request $request){
       if(!$this->checkAuthenticationRequirement($this->basicOperationAuthRequired["update"])){
         return $this->responseGenerator->generate();

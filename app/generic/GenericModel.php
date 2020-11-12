@@ -17,6 +17,7 @@ class GenericModel extends Model
   protected $defaultValue = [];
   protected $formulatedColumn = [];
   public $useSessionCompanyID = true;
+  public $useSessionUserID = true;
   // public function children($childName){
   //   $joinedTable = $this;
   //   foreach($this->children as $childName => $child){
@@ -107,6 +108,9 @@ class GenericModel extends Model
       $columns = array_flip($this->getTableColumns());
       if(!isset($entry['company_id']) && isset($columns['company_id'])){
         $entry['company_id'] = $this->userSession('company_id');
+      }
+      if(!isset($entry['user_id']) && isset($columns['user_id']) && $this->useSessionUserID){
+        $entry['user_id'] = $this->userSession();
       }
       foreach($entry as $entryColumn => $entryValue){
         $value = $entryValue;

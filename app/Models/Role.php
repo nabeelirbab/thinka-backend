@@ -14,6 +14,6 @@ class Role extends GenericModel
     return $data;
   }
   public function role_access_lists(){
-    return $this->hasMany('App\RoleAccessList')->with(['service_action']);
+    return $this->hasMany('App\Models\RoleAccessList')->with(['service_action']);
   }
 }
