@@ -32,7 +32,7 @@ class TableStructure
       foreach($tableStructure['foreign_tables'] as $foreignTableName => $foreignTableStructure){
         $trueTable = $foreignTableName;
         if(isset($foreignTableStructure['true_table'])){
-          $trueTable = $foreignTableStructure['true_table'];
+          $trueTable = strtolower($foreignTableStructure['true_table']);
         }
         $foreignTableStructure['true_table'] = str_plural($trueTable);
         $foreignTableModelClassName = "App\\Models\\".(strToPascal(str_singular($trueTable)));
