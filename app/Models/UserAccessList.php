@@ -1,9 +1,8 @@
 <?php
 
-namespace App;
 namespace App\Models;
 
-use App\GenericModel;
+use App\Generic\GenericModel;
 use Illuminate\Database\Eloquent\Model;
 
 class UserAccessList extends GenericModel

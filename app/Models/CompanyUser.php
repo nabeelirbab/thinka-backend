@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Models;
-use App\GenericModel;
+use App\Generic\GenericModel;
 
 use Illuminate\Database\Eloquent\Model;
 

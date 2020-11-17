@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\GenericModel;
+use App\Generic\GenericModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\GenericModel;
+use App\Generic\GenericModel;
 
 class UserBasicInformation extends GenericModel
 {

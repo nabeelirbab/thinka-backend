@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App;
+use App\Generic\GenericController;
+
 class RoleController extends GenericController
 {
   function __construct(){

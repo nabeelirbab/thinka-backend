@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use App;
+use App\Generic\GenericController;
+
 class UserController extends GenericController
 {
     function __construct(){

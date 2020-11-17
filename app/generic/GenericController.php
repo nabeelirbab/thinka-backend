@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Generic;
 
 use Illuminate\Http\Request;
-use Core\GenericCreate;
-use Core\GenericSync;
-use Core\GenericFormValidation;
 use Illuminate\Support\Facades\Validator;
-use Core\TableStructure;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use App\Generic\Core\GenericCreate;
+use App\Generic\Core\GenericSync;
+use App\Generic\Core\GenericFormValidation;
+use App\Generic\Core\TableStructure as TableStructure;
 use Request as requester;
-use App;
+use App\Http\Controllers\Controller;
 
 class GenericController extends Controller
 {
@@ -48,7 +48,7 @@ class GenericController extends Controller
     ];
     public $retrieveCustomQueryModel = null;
     public function initGenericController(){
-      $this->tableStructure = (new Core\TableStructure($this->tableStructure, $this->model))->getStructure();
+      $this->tableStructure = (new TableStructure($this->tableStructure, $this->model))->getStructure();
       $this->responseGenerator = new Core\ResponseGenerator();
 
       if(config()->set('payload') == null && requester::input('PAYLOAD')){

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\GenericModel;
+use App\Generic\GenericModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -20,6 +20,6 @@ class Statement extends GenericModel
         return $this->hasOne('App\Models\Relation', 'statement_id_2', 'id');
     }
     public function recursive_down_relations(){
-        return $this->hasMany('App\Models\Relation', 'statement_id_1', 'id')->with('recursive_down_statement');
+        return $this->hasMany('App\Models\Relation', 'statement_id_1', 'id')->with('recursive_down_statement')->orderBy('relevance_row', 'asc');
     }
 }

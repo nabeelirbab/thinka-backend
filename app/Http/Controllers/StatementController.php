@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App;
+use App\Generic\GenericController;
+use App\Generic\Core\GenericFormValidation;
+use App\Generic\Core\GenericCreate;
 
 class StatementController extends GenericController
 {
@@ -42,11 +45,11 @@ class StatementController extends GenericController
       "success" => false,
       "fail" => false
     ];
-    $validation = new Core\GenericFormValidation($this->tableStructure, 'create');
+    $validation = new GenericFormValidation($this->tableStructure, 'create');
     if($validation->isValid($entry)){
       $relation = isset($entry['relation']) ? $entry['relation'] : null;
       $entry['user_id'] = $this->userSession('id');
-      $genericCreate = new Core\GenericCreate($this->tableStructure, $this->model);
+      $genericCreate = new GenericCreate($this->tableStructure, $this->model);
       $resultObject['success'] = $genericCreate->create($entry);
       if($resultObject['success']){
         if($relation){

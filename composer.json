@@ -9,6 +9,7 @@
     "license": "MIT",
     "require": {
         "php": "^7.3|^8.0",
+        "doctrine/dbal": "~2.3",
         "fideloper/proxy": "^4.4",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
@@ -37,7 +38,8 @@
     "autoload": {
 		"files": [
             "app/Http/Helper/quick_helper.php",
-            "app/generic/GenericModel.php"
+            "app/Generic/GenericModel.php",
+            "app/Generic/GenericController.php"
         ],
         "psr-4": {
             "App\\": "app/",

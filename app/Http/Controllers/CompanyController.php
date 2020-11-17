@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App;
+use App\Generic\GenericController;
 
 class CompanyController extends GenericController
 {
   function __construct(){
-    $this->model = new App\Company();
+    $this->model = new App\Models\Company();
     $this->tableStructure = [
       'columns' => [
       ],
