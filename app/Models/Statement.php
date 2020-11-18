@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class Statement extends GenericModel
 {
     use HasFactory;
-    protected $validationRuleNotRequired = ['user_id', 'scope_id', 'statement_certainty_id', 'synopsis', 'comment'];
+    protected $validationRuleNotRequired = ['user_id', 'scope_id', 'statement_certainty_id', 'scope', 'statement_certainty', 'synopsis', 'comment'];
     public function logic_tree(){
         return $this->hasOne('App\Models\LogicTree');
     }
@@ -22,4 +22,5 @@ class Statement extends GenericModel
     public function recursive_down_relations(){
         return $this->hasMany('App\Models\Relation', 'statement_id_1', 'id')->with('recursive_down_statement')->orderBy('relevance_row', 'asc');
     }
+    
 }

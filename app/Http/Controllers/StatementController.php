@@ -11,33 +11,33 @@ use App\Generic\Core\GenericCreate;
 class StatementController extends GenericController
 {
   function __construct(){
-      $this->model = new App\Models\Statement();
-      $this->tableStructure = [
-        'columns' => [
+    $this->model = new App\Models\Statement();
+    $this->tableStructure = [
+      'columns' => [
+      ],
+      'foreign_tables' => [
+        'logic_tree' => [
+          "is_child" => true, 
+          'validation_required' => false
         ],
-        'foreign_tables' => [
-          'logic_tree' => [
-            "is_child" => true, 
-            'validation_required' => false
-          ],
-          'relation' => [
-            "is_child" => true,
-            'validation_required' => false,
-            'foreign_tables' => [
-              'statement_1' => [
-                'true_table' => 'Statement',
-                'validation_required' => false,
-              ]
+        'relation' => [
+          "is_child" => true,
+          'validation_required' => false,
+          'foreign_tables' => [
+            'statement_1' => [
+              'true_table' => 'Statement',
+              'validation_required' => false,
             ]
-          ],
-          'recursive_down_relations' => [
-            "true_table" => 'Relation',
-            "is_child" => true,
-            'validation_required' => false
-          ],
-        ]
-      ];
-      $this->initGenericController();
+          ]
+        ],
+        'recursive_down_relations' => [
+          "true_table" => 'Relation',
+          "is_child" => true,
+          'validation_required' => false
+        ],
+      ]
+    ];
+    $this->initGenericController();
   }
   public function create(Request $request){
     $entry = $request->all();
@@ -55,6 +55,9 @@ class StatementController extends GenericController
         if($relation){
           $relation['statement_id_2'] = $resultObject['success']['id'];
           $relation['is_public'] = $entry['is_public'];
+          if(!isset($relation['logic_tree_id'])){
+            $relation['logic_tree_id'] = $resultObject['success']['logic_tree']['id'];
+          }
           $relation['user_id'] = $this->userSession('id');
           $relationModel = new App\Models\Relation();
           foreach($relation as $key => $value){

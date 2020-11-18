@@ -156,11 +156,21 @@ class GenericRetrieve extends Controller
           $mainTable = $tableStructure['table_name'];
           if(isset($tableStructure['foreign_tables'][$table])){
             if($tableStructure['foreign_tables'][$table]['is_child']){
+              printR($tableStructure['foreign_tables'][$table]);
+              $foreignColumn = str_singular($mainTable)."_id";
+              if(isset($tableStructure['foreign_tables'][$table]['foreign_column'])){
+                $foreignColumn = $tableStructure['foreign_tables'][$table]['foreign_column'];
+              }
               $queryModel = $queryModel->join($tablePlural, function($join) use ($mainTable, $tablePlural){
-                $join->on(str_plural($mainTable).".id", '=', $tablePlural.".".str_singular($mainTable)."_id");
+                $join->on(str_plural($mainTable).".id", '=', $tablePlural.".".$foreignColumn);
               });
             }else{
-              $queryModel = $queryModel->join($tablePlural, $tablePlural.".id", "=", str_plural($mainTable).".".str_singular($table)."_id");
+              // printR($tableStructure['foreign_tables'][$table]);
+              $foreignColumn = str_singular($table)."_id";
+              if(isset($tableStructure['foreign_tables'][$table]['foreign_column'])){
+                $foreignColumn = $tableStructure['foreign_tables'][$table]['foreign_column'];
+              }
+              $queryModel = $queryModel->join($tablePlural, $tablePlural.".id", "=", str_plural($mainTable) . "." . $foreignColumn);
             }
           }
         }
@@ -169,13 +179,11 @@ class GenericRetrieve extends Controller
         }else{
           $column = $tablePlural.".".$currentColumn;
         }
-
-
       }else{
         if(isset($tableStructure['columns'][$column]['formula'])){
           $column = $tableStructure['columns'][$column]['formula'];
         }
-          $column = str_plural($tableStructure['table_name']).".".$column;
+        $column = str_plural($tableStructure['table_name']).".".$column;
 
       }
       return $queryModel;

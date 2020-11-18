@@ -17,4 +17,16 @@ class Relation extends GenericModel
     public function statement_1(){
         return $this->belongsTo('App\Models\Statement', 'statement_id_1');
     }
+    public function logic_tree(){
+        return $this->belongsTo('App\Models\LogicTree');
+    }
+    public function relations(){
+        return $this->hasMany('App\Models\Relation', 'parent_relation_id');
+    }
+    public function statement(){ // statement_2
+        return $this->belongsTo('App\Models\Statement', 'statement_id_2');
+    }
+    public function parent_relation(){ // statement_2
+        return $this->belongsTo('App\Models\Relation', 'parent_relation_id');
+    }
 }
