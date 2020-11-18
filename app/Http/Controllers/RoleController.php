@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App;
 use App\Generic\GenericController;
+use App\Generic\Core\GenericRetrieve;
 
 class RoleController extends GenericController
 {
@@ -42,7 +43,7 @@ class RoleController extends GenericController
         'value' => 100
       ];
     }
-    $genericRetrieve = new Core\GenericRetrieve($this->tableStructure, $this->model, $requestArray, $this->retrieveCustomQueryModel);
+    $genericRetrieve = new GenericRetrieve($this->tableStructure, $this->model, $requestArray, $this->retrieveCustomQueryModel);
     $this->responseGenerator->setSuccess($genericRetrieve->executeQuery());
     if($genericRetrieve->totalResult != null){
       $this->responseGenerator->setTotalResult($genericRetrieve->totalResult);

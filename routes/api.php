@@ -79,6 +79,7 @@ $apiResource = [
   'statement',
   'logic-tree',
   'relation-type',
+  'scope',
 ];
 $customAPIResources = [
   'user/request-change-password',
