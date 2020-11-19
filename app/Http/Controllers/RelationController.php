@@ -19,7 +19,8 @@ class RelationController extends GenericController
           "validation_required" => false,
           'foreign_tables' => [
             'statement' => [
-              "is_child" => true
+              "is_child" => true,
+              "foreign_column" => 'statement_id_2',
             ]
           ]
         ],
