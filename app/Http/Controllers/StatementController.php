@@ -53,7 +53,7 @@ class StatementController extends GenericController
       $resultObject['success'] = $genericCreate->create($entry);
       if($resultObject['success']){
         if($relation){
-          $relation['statement_id_2'] = $resultObject['success']['id'];
+          $relation['statement_id'] = $resultObject['success']['id'];
           $relation['is_public'] = $entry['is_public'];
           if(!isset($relation['logic_tree_id'])){
             $relation['logic_tree_id'] = $resultObject['success']['logic_tree']['id'];

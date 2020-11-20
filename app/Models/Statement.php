@@ -17,10 +17,6 @@ class Statement extends GenericModel
         return $this->belongsTo('App\Models\StatementType');
     }
     public function relation(){
-        return $this->hasOne('App\Models\Relation', 'statement_id_2', 'id');
+        return $this->hasOne('App\Models\Relation');
     }
-    public function recursive_down_relations(){
-        return $this->hasMany('App\Models\Relation', 'statement_id_1', 'id')->with('recursive_down_statement')->orderBy('relevance_row', 'asc');
-    }
-    
 }

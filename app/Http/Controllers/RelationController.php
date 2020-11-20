@@ -20,14 +20,12 @@ class RelationController extends GenericController
           'foreign_tables' => [
             'statement' => [
               "is_child" => true,
-              "foreign_column" => 'statement_id_2',
             ]
           ]
         ],
         'relations' => $this->generateRecursiveRelationForeignTable(1),
         'statement' => [
           "is_child" => false,
-          "foreign_column" => 'statement_id_2',
           "validation_required" => false
         ],
         'logic_tree' => [
