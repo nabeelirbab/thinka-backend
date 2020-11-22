@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App;
 use App\Generic\GenericController;
+use App\Generic\Core\GenericFormValidation;
+use App\Generic\Core\GenericCreate;
+use App\Generic\Core\TableStructure;
 
 class CompanyController extends GenericController
 {
@@ -32,7 +35,7 @@ class CompanyController extends GenericController
       "success" => false,
       "fail" => false
     ];
-    $validation = new Core\GenericFormValidation($this->tableStructure, 'create');
+    $validation = new GenericFormValidation($this->tableStructure, 'create');
     $validation->additionalRule = [
       'user.email' => 'required|email|unique:users,email',
       'user.password' => 'required|min:6',
@@ -46,12 +49,12 @@ class CompanyController extends GenericController
         $userEntry = $entry['user'];
         unset($entry['user']);
         $this->model->useSessionCompanyID = false;
-        $genericCreate = new Core\GenericCreate($this->tableStructure, $this->model);
+        $genericCreate = new ($this->tableStructure, $this->model);
         $resultObject['success'] = $genericCreate->create($entry);
         if($resultObject['success']){
           $companyId = $resultObject['success']['id'];
           $userModel = new App\User();
-          $userGenericCreate = new Core\GenericCreate((new Core\TableStructure([
+          $userGenericCreate = new GenericCreate((new TableStructure([
             'columns' => [
             ],
             'foreign_tables' => [
@@ -94,10 +97,10 @@ class CompanyController extends GenericController
     }
 
     // $this->tableStructure = (new Core\TableStructure($this->tableStructure, $this->model))->getStructure();
-    $validation = new Core\GenericFormValidation($this->tableStructure, 'update');
+    $validation = new GenericFormValidation($this->tableStructure, 'update');
     $this->responseGenerator->addDebug('validatio', $validation);
     if($validation->isValid($entry)){
-      $genericUpdate = new Core\GenericUpdate($this->tableStructure, $this->model);
+      $genericUpdate = new GenericUpdate($this->tableStructure, $this->model);
       $resultObject['success'] = $genericUpdate->update($entry);
     }else{
       $resultObject['fail'] = [
@@ -129,14 +132,14 @@ class CompanyController extends GenericController
         'store_terminals' => []
       ]
     ], $storeModel))->getStructure();
-    $storeResult = (new Core\GenericCreate($tableStructure, $storeModel))->create($store);
+    $storeResult = (new GenericCreate($tableStructure, $storeModel))->create($store);
     return $storeResult;
   }
   private function addCompanyUser($companyID, $userID){
     $companyUser = ['company_id' => $companyID, 'user_id' => $userID];
     $companyUserModel = new App\CompanyUser();
     $companyUserModel->useSessionCompanyID = false;
-    $companyUserResult = (new Core\GenericCreate((new Core\TableStructure([
+    $companyUserResult = (new GenericCreate((new TableStructure([
       'columns' => [
       ],
       'foreign_tables' => [
@@ -149,14 +152,14 @@ class CompanyController extends GenericController
     $userRoleAdmin = ['company_id' => $companyID, 'user_id' => $userID, 'role_id' => 100];
     $userRoleModel = new App\UserRole();
     $userRoleModel->useSessionCompanyID = false;
-    $userRoleResult = (new Core\GenericCreate((new Core\TableStructure([], $userRoleModel))->getStructure(), $userRoleModel));
+    $userRoleResult = (new GenericCreate((new TableStructure([], $userRoleModel))->getStructure(), $userRoleModel));
     $userRoleResult->create($userRoleAdmin);
     $userRoleModelCashier = new App\UserRole();
-    $userRoleCashierResult = (new Core\GenericCreate((new Core\TableStructure([], $userRoleModel))->getStructure(), $userRoleModelCashier));
+    $userRoleCashierResult = (new GenericCreate((new TableStructure([], $userRoleModel))->getStructure(), $userRoleModelCashier));
     $userRoleCashier = ['company_id' => $companyID, 'user_id' => $userID, 'role_id' => 101];
     $userRoleCashierResult->create($userRoleCashier);
     $userRoleModelManager = new App\UserRole();
-    $userRoleManagerResult = (new Core\GenericCreate((new Core\TableStructure([], $userRoleModel))->getStructure(), $userRoleModelManager));
+    $userRoleManagerResult = (new GenericCreate((new TableStructure([], $userRoleModel))->getStructure(), $userRoleModelManager));
     $userRoleManager = ['company_id' => $companyID, 'user_id' => $userID, 'role_id' => 102];
     $userRoleManagerResult->create($userRoleManager);
     return $userRoleResult;

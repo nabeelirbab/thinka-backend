@@ -8,6 +8,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use App;
 use App\Generic\GenericController;
+use App\Generic\Core\GenericCreate;
+use App\Generic\Core\GenericFormValidation;
 
 class UserController extends GenericController
 {
@@ -83,9 +85,9 @@ class UserController extends GenericController
         "success" => false,
         "fail" => false
       ];
-      $validation = new Core\GenericFormValidation($this->tableStructure, 'create');
+      $validation = new GenericFormValidation($this->tableStructure, 'create');
       if($validation->isValid($requestData)){
-          $genericCreate = new Core\GenericCreate($this->tableStructure, $this->model);
+          $genericCreate = new GenericCreate($this->tableStructure, $this->model);
           $resultObject['success'] = $genericCreate->create($requestData);
       }else{
         $resultObject['fail'] = [
