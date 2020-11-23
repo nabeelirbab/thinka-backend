@@ -86,7 +86,8 @@ $customAPIResources = [
   'user/request-change-password',
   'user/register',
   'user/confirm-change-password',
-  'statement/retrieve-tree'
+  'statement/retrieve-tree',
+  'relation/trending'
 ];
 $api_resource($apiResource);
 $custom_api($customAPIResources);

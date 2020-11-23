@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Generic\GenericController;
 use App;
+use DB;
 class RelationController extends GenericController
 {
   function __construct(){
@@ -50,5 +51,10 @@ class RelationController extends GenericController
       $relations['foreign_tables']['relations'] = $this->generateRecursiveRelationForeignTable(++$currentDeep);
     }
     return $relations;
+  }
+  public function trending(){
+    $result = DB::select('call statements_trending');
+    $this->responseGenerator->setSuccess($result);
+    return $this->responseGenerator->generate();
   }
 }

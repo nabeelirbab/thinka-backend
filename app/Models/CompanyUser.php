@@ -14,6 +14,9 @@ class CompanyUser extends GenericModel
     return $entry;
   }
   public function company(){
-    return $this->belongsTo('App\Company', 'company_id', 'id');
+    return $this->belongsTo('App\Models\Company', 'company_id', 'id');
+  }
+  public function user_basic_information(){
+    return $this->belongsTo('App\Models\UserBasicInformation', 'user_id', 'user_id');
   }
 }
