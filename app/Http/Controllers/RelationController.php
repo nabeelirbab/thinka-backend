@@ -24,10 +24,14 @@ class RelationController extends GenericController
             ]
           ]
         ],
-        'relations' => $this->generateRecursiveRelationForeignTable(1),
+        'user_relation_bookmarks' => [],
+        'relations' => $this->generateRecursiveRelationForeignTable(1), // sub relations
         'statement' => [
           "is_child" => false,
-          "validation_required" => false
+          "validation_required" => false,
+          'foreign_tables' => [
+            'statement_type' => []
+          ]
         ],
         'logic_tree' => [
           "is_child" => true, 

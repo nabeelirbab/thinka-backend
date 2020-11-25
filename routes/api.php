@@ -80,7 +80,8 @@ $apiResource = [
   'logic-tree',
   'relation-type',
   'scope',
-  'relation'
+  'relation',
+  'user-relation-bookmark'
 ];
 $customAPIResources = [
   'user/request-change-password',

@@ -14,7 +14,7 @@ class Relations extends Migration
     public function up()
     {
         Schema::create('relations', function(Blueprint $table){
-            $table->unsignedBigInteger('id');
+            $table->bigIncrements('id');
             $table->unsignedBigInteger('user_id');
             $table->unsignedInteger('relation_type_id');
             $table->unsignedBigInteger('logic_tree_id');

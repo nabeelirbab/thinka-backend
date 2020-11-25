@@ -20,6 +20,9 @@ class Relation extends GenericModel
     public function statement(){
         return $this->belongsTo('App\Models\Statement');
     }
+    public function user_relation_bookmarks(){
+        return $this->hasMany('App\Models\UserRelationBookmark')->where('user_id', $this->userSession('id'));
+    }
     public function parent_relation(){ // statement_2
         return $this->belongsTo('App\Models\Relation', 'parent_relation_id');
     }
