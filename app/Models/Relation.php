@@ -15,7 +15,10 @@ class Relation extends GenericModel
         return $this->belongsTo('App\Models\LogicTree');
     }
     public function relations(){
-        return $this->hasMany('App\Models\Relation', 'parent_relation_id');
+        return $this->hasMany('App\Models\Relation', 'parent_relation_id')->where(function($query){
+            $query->where('user_id', $this->userSession('id')); // ->where('is_public', 1)
+            $query->orWhere('is_public', 1);
+        });
     }
     public function statement(){
         return $this->belongsTo('App\Models\Statement');

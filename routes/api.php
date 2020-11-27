@@ -88,7 +88,8 @@ $customAPIResources = [
   'user/register',
   'user/confirm-change-password',
   'statement/retrieve-tree',
-  'relation/trending'
+  'relation/trending',
+  'relation/publish'
 ];
 $api_resource($apiResource);
 $custom_api($customAPIResources);
