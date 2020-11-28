@@ -42,8 +42,8 @@ class RelationController extends GenericController
     ];
     $this->retrieveCustomQueryModel = function($queryModel, &$leftJoinedTable){
       $queryModel = $queryModel->where(function($query){
-        $query->where('user_id', $this->userSession('id')); // ->where('is_public', 1)
-        $query->orWhere('is_public', 1);
+        $query->where('relations.user_id', $this->userSession('id')); // ->where('is_public', 1)
+        $query->orWhere('relations.is_public', 1);
       });
       
       return $queryModel;
