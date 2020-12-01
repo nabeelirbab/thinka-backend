@@ -16,6 +16,7 @@ class CleanRelationTable extends Migration
 
         Schema::table('relations', function(Blueprint $table){
             $table->unsignedBigInteger('parent_relation_id')->nullable()->change();
+            $table->dropForeign(['statement_id_1']);
             $table->dropColumn('statement_id_1');
             $table->renameColumn('statement_id_2', 'statement_id');
         });

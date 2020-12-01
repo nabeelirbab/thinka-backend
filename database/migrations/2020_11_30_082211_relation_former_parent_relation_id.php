@@ -14,7 +14,7 @@ class RelationFormerParentRelationId extends Migration
     public function up()
     {
         Schema::table('relations', function(Blueprint $table){
-            $table->unsignedBigInteger('former_parent_relation_id')->after('publish_at')->nullable();
+            $table->unsignedBigInteger('former_parent_relation_id')->after('published_at')->nullable();
         });
     }
 

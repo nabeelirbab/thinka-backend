@@ -50,8 +50,18 @@ class StatementController extends GenericController
       $relation = isset($entry['relation']) ? $entry['relation'] : null;
       unset($entry['relation']);
       $entry['user_id'] = $this->userSession('id');
-      $genericCreate = new GenericCreate($this->tableStructure, $this->model);
-      $resultObject['success'] = $genericCreate->create($entry);
+      if(!$entry['id']){
+        $genericCreate = new GenericCreate($this->tableStructure, $this->model);
+        $resultObject['success'] = $genericCreate->create($entry);
+      }else{ // create from existing statement
+        $logicTreeId = $this->createLogicTree($entry);
+        $resultObject['success'] = [
+          "id" => $entry['id'],
+          "logic_tree" => [
+            "id" => $logicTreeId
+          ]
+        ];
+      }
       if($resultObject['success']){
         if($relation){
           $relation['statement_id'] = $resultObject['success']['id'];
@@ -79,6 +89,15 @@ class StatementController extends GenericController
     $this->responseGenerator->setSuccess($resultObject['success']);
     $this->responseGenerator->setFail($resultObject['fail']);
     return $this->responseGenerator->generate();
+  }
+  private function createLogicTree($statement){
+    $logicTreeModel = new App\Models\LogicTree();
+    $logicTreeModel->user_id = $this->userSession('id');
+    $logicTreeModel->name = $statement['text'];
+    $logicTreeModel->statement_id = $statement['id'];
+    $logicTreeModel->is_public = $statement['is_public'];
+    $logicTreeModel->save();
+    return $logicTreeModel->id;
   }
   public function retrieveTree(Request $request){
 
