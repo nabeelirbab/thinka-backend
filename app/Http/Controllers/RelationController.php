@@ -87,10 +87,12 @@ class RelationController extends GenericController
         $relationModel->save();
         foreach($entry['sub_relations'] as $subRelation){
           $relationModel = (new App\Models\Relation())->find($subRelation['id']);
-          if($relationModel->user_id === $this->userSession('id')){
-            $relationModel->is_public = $entry['is_public'];
-            $relationModel->published_at = $publishedAt;
-            $relationModel->save();
+          if($relationModel){
+            if($relationModel->user_id === $this->userSession('id')){
+              $relationModel->is_public = $entry['is_public'];
+              $relationModel->published_at = $publishedAt;
+              $relationModel->save();
+            }
           }
         }
         $this->responseGenerator->setSuccess(true);
@@ -101,7 +103,90 @@ class RelationController extends GenericController
         ]);
       }
     }
-    return $this->responseGenerator->generate();;
+    return $this->responseGenerator->generate();
+  }
+  public function deletePartial(Request $request){
+    $validator = Validator::make($request->all(), [
+      'id' => 'required|exists:relations,id',
+    ]);
+    if($validator->fails()){
+      $this->responseGenerator->setFail([
+        "code" => 1,
+        "message" => $validator->errors()->toArray()
+      ]);
+    }else{
+      $entry = $request->all();
+      $with = [ 
+        'relations' => function($query){
+          $query->with('statement');
+        }
+      ];
+      $relationModel = ((new App\Models\Relation())->with($with)->where('id', $entry['id'])->where('user_id', $this->userSession('id'))->get());
+      if(count($relationModel)){
+        $relationModel = $relationModel[0];
+        $subRelations = ($relationModel->toArray())['relations'];
+        foreach($subRelations as $subRelation){
+          $subRelationModel = (new App\Models\Relation())->find($subRelation['id']);
+          if($subRelationModel){
+            $subRelationModel->former_parent_relation_id = $subRelationModel->parent_relation_id;
+            $subRelationModel->parent_relation_id = null;
+            $logicTreeId = $this->createLogicTree($subRelation);
+            $subRelationModel->logic_tree_id = $logicTreeId;
+            $subRelationModel->save();
+          }
+        }
+        $relationModel->delete();
+        $this->responseGenerator->setSuccess(true);
+      }else{
+        $this->responseGenerator->setFail([
+          "code" => 2,
+          "message" => "Statement not found or you are not the author"
+        ]);
+      }
+    }
+    return $this->responseGenerator->generate();
+  }
+  private function createLogicTree($relation){
+    $logicTreeModel = new App\Models\LogicTree();
+    $logicTreeModel->user_id = $relation['user_id'];
+    $logicTreeModel->name = $relation['statement']['text'];
+    $logicTreeModel->statement_id = $relation['statement']['id'];
+    $logicTreeModel->is_public = $relation['is_public'];
+    $logicTreeModel->save();
+    return $logicTreeModel->id;
+  }
+  public function deleteAll(Request $request){
+    $validator = Validator::make($request->all(), [
+      'id' => 'required|exists:relations,id',
+    ]);
+    if($validator->fails()){
+      $this->responseGenerator->setFail([
+        "code" => 1,
+        "message" => $validator->errors()->toArray()
+      ]);
+    }else{
+      $entry = $request->all();
+      $relationModel = ((new App\Models\Relation())->where('id', $entry['id'])->where('user_id', $this->userSession('id'))->get())->toArray();
+      if(count($relationModel)){
+        $this->recursiveDeleteAll($entry['id']);
+        $this->responseGenerator->setSuccess(true);
+      }else{
+        $this->responseGenerator->setFail([
+          "code" => 2,
+          "message" => "Statement not found or you are not the author"
+        ]);
+      }
+    }
+    return $this->responseGenerator->generate();
+  }
+  private function recursiveDeleteAll($relationId){
+    $relation = (new App\Models\Relation())->with(['relations'])->find($relationId);
+    $subRelations = ($relation->toArray())['relations'];
+    $relation->delete();
+    foreach($subRelations as $subRelation){
+      $this->recursiveDeleteAll($subRelation['id']);
+    }
+    return true;
   }
   public function trending(){
     $result = DB::select('call statements_trending');

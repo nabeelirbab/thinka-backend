@@ -171,4 +171,16 @@ class ServiceLayerController extends Controller
         return null;
       }
     }
+    public function userSession($key = "id"){
+      if($key){
+        if(config('payload.'.$key)){
+          return config('payload.'.$key);
+        }else{
+          $config = config('payload');
+          return isset($config[$key]) ? $config[$key] : null;
+        }
+      }else{
+        return config('payload');
+      }
+    }
 }

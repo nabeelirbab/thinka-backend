@@ -55,7 +55,7 @@ class GenericController extends Controller
         config()->set('payload', requester::input('PAYLOAD'));
       }else{
         config()->set('payload', [
-          'id' => 1,
+          'id' => 36,
           'company_id' => 1,
           // 'roles.100' => true
         ]); // set sample config
