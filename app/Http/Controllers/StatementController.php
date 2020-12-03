@@ -50,7 +50,7 @@ class StatementController extends GenericController
       $relation = isset($entry['relation']) ? $entry['relation'] : null;
       unset($entry['relation']);
       $entry['user_id'] = $this->userSession('id');
-      if(!$entry['id']){
+      if(!isset($entry['id']) || !$entry['id']){
         $genericCreate = new GenericCreate($this->tableStructure, $this->model);
         $resultObject['success'] = $genericCreate->create($entry);
       }else{ // create from existing statement
