@@ -146,6 +146,32 @@ class RelationController extends GenericController
     }
     return $this->responseGenerator->generate();
   }
+  public function deleteClip(Request $request){
+    $validator = Validator::make($request->all(), [
+      'id' => 'required|exists:relations,id',
+    ]);
+    if($validator->fails()){
+      $this->responseGenerator->setFail([
+        "code" => 1,
+        "message" => $validator->errors()->toArray()
+      ]);
+    }else{
+      $entry = $request->all();
+      $relationModel = ((new App\Models\Relation())->where('id', $entry['id'])->where('user_id', $this->userSession('id'))->get());
+      // TODO create new logic tree?
+      if(count($relationModel)){
+        $relationModel[0]->former_parent_relation_id = $relationModel[0]->parent_relation_id;
+        $relationModel[0]->parent_relation_id = null;
+        $this->responseGenerator->setSuccess($relationModel[0]->save());
+      }else{
+        $this->responseGenerator->setFail([
+          "code" => 2,
+          "message" => "Statement not found or you are not the author"
+        ]);
+      }
+    }
+    return $this->responseGenerator->generate();
+  }
   private function createLogicTree($relation){
     $logicTreeModel = new App\Models\LogicTree();
     $logicTreeModel->user_id = $relation['user_id'];
