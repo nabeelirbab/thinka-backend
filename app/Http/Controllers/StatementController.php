@@ -48,7 +48,6 @@ class StatementController extends GenericController
     $validation = new GenericFormValidation($this->tableStructure, 'create');
     if($validation->isValid($entry)){
       $relation = isset($entry['relation']) ? $entry['relation'] : null;
-      unset($entry['relation']);
       $entry['user_id'] = $this->userSession('id');
       if(!isset($entry['id']) || !$entry['id']){
         $genericCreate = new GenericCreate($this->tableStructure, $this->model);

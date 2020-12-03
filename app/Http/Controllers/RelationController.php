@@ -81,7 +81,7 @@ class RelationController extends GenericController
       $entry = $request->all();
       $relationModel = (new App\Models\Relation())->find($entry['id']);
       if($relationModel->user_id === $this->userSession('id')){
-        $publishedAt = date('Y-m-d H:i:s');
+        $publishedAt = $entry['is_public'] ? date('Y-m-d H:i:s') : null;
         $relationModel->is_public = $entry['is_public'];
         $relationModel->published_at = $publishedAt;
         $relationModel->save();
@@ -208,6 +208,10 @@ class RelationController extends GenericController
   private function recursiveDeleteAll($relationId){
     $relation = (new App\Models\Relation())->with(['relations'])->find($relationId);
     $subRelations = ($relation->toArray())['relations'];
+    $userRelationBookmarks = (new App\Models\UserRelationBookmark())->where('relation_id', $relationId)->orWhere('sub_relation_id', $relationId)->delete();
+    // if(count($userRelationBookmarks)){
+    //   $userRelationBookmarks[0]->delete(); // delete bookmarks
+    // }
     $relation->delete();
     foreach($subRelations as $subRelation){
       $this->recursiveDeleteAll($subRelation['id']);
