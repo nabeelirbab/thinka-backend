@@ -157,12 +157,15 @@ class RelationController extends GenericController
       ]);
     }else{
       $entry = $request->all();
-      $relationModel = ((new App\Models\Relation())->where('id', $entry['id'])->where('user_id', $this->userSession('id'))->get());
+      $relationModel = ((new App\Models\Relation())->with(['statement'])->where('id', $entry['id'])->where('user_id', $this->userSession('id'))->get());
       // TODO create new logic tree?
       if(count($relationModel)){
         $relationModel[0]->former_parent_relation_id = $relationModel[0]->parent_relation_id;
         $relationModel[0]->parent_relation_id = null;
-        $this->responseGenerator->setSuccess($relationModel[0]->save());
+        $updateResult = $relationModel[0]->save();
+        $logicTreeId = $this->createLogicTree($relationModel[0]);
+        $this->recursiveUpdate($entry['id'], $logicTreeId);
+        $this->responseGenerator->setSuccess($updateResult);
       }else{
         $this->responseGenerator->setFail([
           "code" => 2,
@@ -171,6 +174,16 @@ class RelationController extends GenericController
       }
     }
     return $this->responseGenerator->generate();
+  }
+  private function recursiveUpdate($relationId, $newLogicTreeId){
+    $relation = (new App\Models\Relation())->with(['relations'])->find($relationId);
+    $subRelations = ($relation->toArray())['relations'];
+    $relation->logic_tree_id = $newLogicTreeId;
+    $relation->save();
+    foreach($subRelations as $subRelation){
+      $this->recursiveUpdate($subRelation['id'], $newLogicTreeId);
+    }
+    return true;
   }
   private function createLogicTree($relation){
     $logicTreeModel = new App\Models\LogicTree();
