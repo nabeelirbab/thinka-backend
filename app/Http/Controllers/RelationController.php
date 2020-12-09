@@ -236,4 +236,18 @@ class RelationController extends GenericController
     $this->responseGenerator->setSuccess($result);
     return $this->responseGenerator->generate();
   }
+  public function myList(){
+    // $result = DB::select(
+    //   'call statement_my_list( ? )', 
+    //   array('75')
+    // );
+    $result = DB::select(
+      DB::raw("SET @p0='" . $this->userSession('id') . "';")
+    );
+    $result = DB::select(
+      DB::raw("call statement_my_list(@p0)")
+    );
+    $this->responseGenerator->setSuccess($result);
+    return $this->responseGenerator->generate();
+  }
 }

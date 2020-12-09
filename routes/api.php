@@ -92,7 +92,8 @@ $customAPIResources = [
   'relation/publish',
   'relation/delete-all',
   'relation/delete-partial',
-  'relation/delete-clip'
+  'relation/delete-clip',
+  'relation/my-list',
 ];
 $api_resource($apiResource);
 $custom_api($customAPIResources);

@@ -65,7 +65,7 @@ class StatementController extends GenericController
       if($resultObject['success']){
         if($relation){
           $relation['statement_id'] = $resultObject['success']['id'];
-          $relation['is_public'] = 1; // $entry['is_public'];
+          $relation['is_public'] = $entry['is_public'];
           if(!isset($relation['logic_tree_id'])){
             $relation['logic_tree_id'] = $resultObject['success']['logic_tree']['id'];
           }
@@ -89,6 +89,32 @@ class StatementController extends GenericController
     $this->responseGenerator->setFail($resultObject['fail']);
     return $this->responseGenerator->generate();
   }
+  // public function update(Request $request){
+  //   $entry = $request->all();
+  //   $resultObject = [
+  //     "success" => false,
+  //     "fail" => false
+  //   ];
+  //   $validation = new GenericFormValidation($this->tableStructure, 'update');
+  //   if($validation->isValid($entry)){
+  //     $relation = isset($entry['relation']) ? $entry['relation'] : null;
+  //     unset($entry['relation']);
+  //     $entry['user_id'] = $this->userSession('id');
+  //     if(!isset($entry['id']) || !$entry['id']){
+  //       $genericUpdate = new GenericUpdate($this->tableStructure, $this->model);
+  //       $resultObject['success'] = $genericCreate->update($entry);
+  //     }
+  //   }else{
+  //     $resultObject['fail'] = [
+  //       "code" => 1,
+  //       "message" => $validation->validationErrors
+  //     ];
+
+  //   }
+  //   $this->responseGenerator->setSuccess($resultObject['success']);
+  //   $this->responseGenerator->setFail($resultObject['fail']);
+  //   return $this->responseGenerator->generate();
+  // }
   private function createLogicTree($statement){
     $logicTreeModel = new App\Models\LogicTree();
     $logicTreeModel->user_id = $this->userSession('id');
