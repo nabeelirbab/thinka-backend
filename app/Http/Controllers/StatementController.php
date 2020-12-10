@@ -7,6 +7,7 @@ use App;
 use App\Generic\GenericController;
 use App\Generic\Core\GenericFormValidation;
 use App\Generic\Core\GenericCreate;
+use Illuminate\Support\Facades\Validator;
 
 class StatementController extends GenericController
 {
@@ -89,32 +90,59 @@ class StatementController extends GenericController
     $this->responseGenerator->setFail($resultObject['fail']);
     return $this->responseGenerator->generate();
   }
-  // public function update(Request $request){
-  //   $entry = $request->all();
-  //   $resultObject = [
-  //     "success" => false,
-  //     "fail" => false
-  //   ];
-  //   $validation = new GenericFormValidation($this->tableStructure, 'update');
-  //   if($validation->isValid($entry)){
-  //     $relation = isset($entry['relation']) ? $entry['relation'] : null;
-  //     unset($entry['relation']);
-  //     $entry['user_id'] = $this->userSession('id');
-  //     if(!isset($entry['id']) || !$entry['id']){
-  //       $genericUpdate = new GenericUpdate($this->tableStructure, $this->model);
-  //       $resultObject['success'] = $genericCreate->update($entry);
-  //     }
-  //   }else{
-  //     $resultObject['fail'] = [
-  //       "code" => 1,
-  //       "message" => $validation->validationErrors
-  //     ];
-
-  //   }
-  //   $this->responseGenerator->setSuccess($resultObject['success']);
-  //   $this->responseGenerator->setFail($resultObject['fail']);
-  //   return $this->responseGenerator->generate();
-  // }
+  public function updateRelation(Request $request){
+    $entry = $request->all();
+    $validator = Validator::make($entry, [
+      'id' => 'exists:statements,id',
+      'relation' => 'required',
+      'relation.id' => 'exists:relations,id',
+    ]);
+    if($validator->fails()){
+      $this->responseGenerator->setFail([
+        "code" => 1,
+        "message" => $validator->errors()->toArray()
+      ]);
+    }else{
+      $updatedRelation = $entry['relation'];
+      $relation = (new App\Models\Relation())->where('id', $updatedRelation['id'])->where('user_id', $this->userSession('id'))->get();
+      if(!count($relation)){
+        $this->responseGenerator->setFail([
+          "code" => 2,
+          "message" => "Statement not found or you do not own it"
+        ]);
+      }else if(count($relation) && $relation[0]->is_public){
+        $this->responseGenerator->setFail([
+          "code" => 3,
+          "message" => 'You cannot modify published statements'
+        ]);
+      }else{
+        $relation = $relation[0];
+        unset($entry['relation']);
+        if(isset($entry['id']) && !isset($entry['old_statement_id'])){ // if old_statement_id exists, then the user choose a statement from suggestion
+          $statementModel = (new App\Models\Statement())->find($entry['id']);
+          $statementModel->text = $entry['text'];
+          $statementModel->statement_type_id = $entry['statement_type_id'];
+          $statementModel->save();
+          $relation->statement_id = $statementModel->id;
+        }else{
+          $relation->statement_id = $entry['id'];
+        }
+        unset($updatedRelation['relevance_window']);
+        foreach($updatedRelation as $column => $value){
+          $relation->$column = $value;
+        }
+        $relation->save();
+        $this->responseGenerator->setSuccess([
+          'id' => $relation->statement_id,
+          'relation' => [
+            'id' => $relation->id
+          ]
+        ]);
+      }
+    }
+    
+    return $this->responseGenerator->generate();
+  }
   private function createLogicTree($statement){
     $logicTreeModel = new App\Models\LogicTree();
     $logicTreeModel->user_id = $this->userSession('id');

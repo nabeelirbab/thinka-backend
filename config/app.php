@@ -14,6 +14,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+    'DB_SEEDER_SERVICE_RESTORE_API_LINK' => env('DB_SEEDER_SERVICE_RESTORE_API_LINK'),
 
     /*
     |--------------------------------------------------------------------------

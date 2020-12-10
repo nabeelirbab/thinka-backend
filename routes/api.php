@@ -88,6 +88,7 @@ $customAPIResources = [
   'user/register',
   'user/confirm-change-password',
   'statement/retrieve-tree',
+  'statement/update-relation',
   'relation/trending',
   'relation/publish',
   'relation/delete-all',
