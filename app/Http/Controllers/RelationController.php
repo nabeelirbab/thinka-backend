@@ -81,21 +81,21 @@ class RelationController extends GenericController
     if(!$this->checkAuthenticationRequirement($this->basicOperationAuthRequired["retrieve"])){
       return $this->responseGenerator->generate();
     }
-    if(isset($requestArray['condition']) && count($requestArray['condition']) && $requestArray['condition'][0]['column'] === 'id'){
-      $rootRelationId = $requestArray['condition'][0]['value'];
-      $this->retrieveCustomQueryModel = function($queryModel, &$leftJoinedTable){
-        $queryModel = $queryModel->where(function($query){
-          $query->where('relations.user_id', $this->userSession('id')); // ->where('is_public', 1)
-          $query->orWhere('relations.is_public', 1);
-        });
-        $queryModel = $queryModel->leftJoin('user_relation_settings', function($join){
-          $join->on('relations.id', '=', 'user_relation_settings.relation_id')->where('user_relation_settings.user_id', $this->userSession('id'));
+    // if(isset($requestArray['condition']) && count($requestArray['condition']) && $requestArray['condition'][0]['column'] === 'id'){
+    //   $rootRelationId = $requestArray['condition'][0]['value'];
+    //   $this->retrieveCustomQueryModel = function($queryModel, &$leftJoinedTable){
+    //     $queryModel = $queryModel->where(function($query){
+    //       $query->where('relations.user_id', $this->userSession('id')); // ->where('is_public', 1)
+    //       $query->orWhere('relations.is_public', 1);
+    //     });
+    //     $queryModel = $queryModel->leftJoin('user_relation_settings', function($join){
+    //       $join->on('relations.id', '=', 'user_relation_settings.relation_id')->where('user_relation_settings.user_id', $this->userSession('id'));
 
-          // $join->on($this->userSession('id'), '=', 'user_relation_settings.user_id');
-        });
-        return $queryModel;
-      };
-    }
+    //       // $join->on($this->userSession('id'), '=', 'user_relation_settings.user_id');
+    //     });
+    //     return $queryModel;
+    //   };
+    // }
     $genericRetrieve = new GenericRetrieve($this->tableStructure, $this->model, $requestArray, $this->retrieveCustomQueryModel);
     $this->responseGenerator->setSuccess($genericRetrieve->executeQuery());
     if($genericRetrieve->totalResult != null){
