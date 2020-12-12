@@ -81,7 +81,8 @@ $apiResource = [
   'relation-type',
   'scope',
   'relation',
-  'user-relation-bookmark'
+  'user-relation-bookmark',
+  'user-relation-setting'
 ];
 $customAPIResources = [
   'user/request-change-password',

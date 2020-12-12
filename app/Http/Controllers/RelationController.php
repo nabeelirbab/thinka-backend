@@ -7,6 +7,8 @@ use App\Generic\GenericController;
 use Illuminate\Support\Facades\Validator;
 use App;
 use DB;
+use App\Generic\Core\GenericRetrieve as GenericRetrieve;
+
 class RelationController extends GenericController
 {
   function __construct(){
@@ -38,6 +40,15 @@ class RelationController extends GenericController
           "is_child" => true, 
           'validation_required' => false
         ],
+        "user" => [
+          'validation_required' => false,
+          'foreign_tables' => [
+            "user_basic_information" => [
+              'validation_required' => false,
+              "is_child" => false,
+            ]
+          ]
+        ]
       ]
     ];
     $this->retrieveCustomQueryModel = function($queryModel, &$leftJoinedTable){
@@ -45,10 +56,52 @@ class RelationController extends GenericController
         $query->where('relations.user_id', $this->userSession('id')); // ->where('is_public', 1)
         $query->orWhere('relations.is_public', 1);
       });
-      
+      // $queryModel = $queryModel->leftJoin('user_relation_settings', function($join){
+      //   $join->on('relations.id', '=', 'user_relation_settings.relation_id');
+      //   $join->on(function($query) use ($param1, $param2) {
+      //     $query->on('bookings.arrival', '=', $param1);
+      //     $query->orOn('departure', '=',$param2);
+      //   });
+      // });
       return $queryModel;
     };
     $this->initGenericController();
+  }
+  public function retrieve(Request $request){
+    // printR($request->all());
+    $requestArray = $this->systemGenerateRetrieveParameter($request->all());
+    $validator = Validator::make($requestArray, ["select" => "required|array|min:1"]);
+    if($validator->fails()){
+      $this->responseGenerator->setFail([
+        "code" => 1,
+        "message" => $validator->errors()->toArray()
+      ]);
+      return $this->responseGenerator->generate();
+    }
+    if(!$this->checkAuthenticationRequirement($this->basicOperationAuthRequired["retrieve"])){
+      return $this->responseGenerator->generate();
+    }
+    if(isset($requestArray['condition']) && count($requestArray['condition']) && $requestArray['condition'][0]['column'] === 'id'){
+      $rootRelationId = $requestArray['condition'][0]['value'];
+      $this->retrieveCustomQueryModel = function($queryModel, &$leftJoinedTable){
+        $queryModel = $queryModel->where(function($query){
+          $query->where('relations.user_id', $this->userSession('id')); // ->where('is_public', 1)
+          $query->orWhere('relations.is_public', 1);
+        });
+        $queryModel = $queryModel->leftJoin('user_relation_settings', function($join){
+          $join->on('relations.id', '=', 'user_relation_settings.relation_id')->where('user_relation_settings.user_id', $this->userSession('id'));
+
+          // $join->on($this->userSession('id'), '=', 'user_relation_settings.user_id');
+        });
+        return $queryModel;
+      };
+    }
+    $genericRetrieve = new GenericRetrieve($this->tableStructure, $this->model, $requestArray, $this->retrieveCustomQueryModel);
+    $this->responseGenerator->setSuccess($genericRetrieve->executeQuery());
+    if($genericRetrieve->totalResult != null){
+      $this->responseGenerator->setTotalResult($genericRetrieve->totalResult);
+    }
+    return $this->responseGenerator->generate();
   }
   private function generateRecursiveRelationForeignTable($currentDeep, $deep = 10){
     $relations = [
