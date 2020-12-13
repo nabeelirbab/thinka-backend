@@ -21,7 +21,11 @@ class ServiceRestore extends Seeder
       \DB::table('role_access_lists')->truncate();
       \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
       $baseUrl = config('app.DB_SEEDER_SERVICE_RESTORE_API_LINK');
-      $services = json_decode(str_replace('localhost\/thinka-api\/public\/api', $baseUrl, \Storage::disk('local')->get('bu\services.json')), true);
+      $serviceJson = \Storage::disk('local')->get('bu\services.json');
+      if($baseUrl){
+        $serviceJson = str_replace('localhost\/thinka-api\/public\/api', $baseUrl, $serviceJson);
+      }
+      $services = json_decode($serviceJson, true);
       $serviceAction = json_decode(\Storage::disk('local')->get('bu\service_actions.json'), true);
       $roles = json_decode(\Storage::disk('local')->get('bu\roles.json'), true);
       $roleAccessList = json_decode(\Storage::disk('local')->get('bu\role_access_lists.json'), true);
