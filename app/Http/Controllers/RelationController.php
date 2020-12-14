@@ -53,16 +53,9 @@ class RelationController extends GenericController
     ];
     $this->retrieveCustomQueryModel = function($queryModel, &$leftJoinedTable){
       $queryModel = $queryModel->where(function($query){
-        $query->where('relations.user_id', $this->userSession('id')); // ->where('is_public', 1)
-        $query->orWhere('relations.is_public', 1);
+        $query->where('relations.user_id', $this->userSession('id'));
+        $query->orWhereNotNull('relations.published_at');
       });
-      // $queryModel = $queryModel->leftJoin('user_relation_settings', function($join){
-      //   $join->on('relations.id', '=', 'user_relation_settings.relation_id');
-      //   $join->on(function($query) use ($param1, $param2) {
-      //     $query->on('bookings.arrival', '=', $param1);
-      //     $query->orOn('departure', '=',$param2);
-      //   });
-      // });
       return $queryModel;
     };
     $this->initGenericController();
@@ -81,21 +74,6 @@ class RelationController extends GenericController
     if(!$this->checkAuthenticationRequirement($this->basicOperationAuthRequired["retrieve"])){
       return $this->responseGenerator->generate();
     }
-    // if(isset($requestArray['condition']) && count($requestArray['condition']) && $requestArray['condition'][0]['column'] === 'id'){
-    //   $rootRelationId = $requestArray['condition'][0]['value'];
-    //   $this->retrieveCustomQueryModel = function($queryModel, &$leftJoinedTable){
-    //     $queryModel = $queryModel->where(function($query){
-    //       $query->where('relations.user_id', $this->userSession('id')); // ->where('is_public', 1)
-    //       $query->orWhere('relations.is_public', 1);
-    //     });
-    //     $queryModel = $queryModel->leftJoin('user_relation_settings', function($join){
-    //       $join->on('relations.id', '=', 'user_relation_settings.relation_id')->where('user_relation_settings.user_id', $this->userSession('id'));
-
-    //       // $join->on($this->userSession('id'), '=', 'user_relation_settings.user_id');
-    //     });
-    //     return $queryModel;
-    //   };
-    // }
     $genericRetrieve = new GenericRetrieve($this->tableStructure, $this->model, $requestArray, $this->retrieveCustomQueryModel);
     $this->responseGenerator->setSuccess($genericRetrieve->executeQuery());
     if($genericRetrieve->totalResult != null){
@@ -133,7 +111,7 @@ class RelationController extends GenericController
   public function publish(Request $request){
     $validator = Validator::make($request->all(), [
       'id' => 'required|exists:relations,id',
-      'is_public' => 'required',
+      'published_at' => 'required',
       'sub_relations' => 'array',
       'sub_relations.*' => 'required|exists:relations,id'
     ]);
@@ -146,15 +124,13 @@ class RelationController extends GenericController
       $entry = $request->all();
       $relationModel = (new App\Models\Relation())->find($entry['id']);
       if($relationModel->user_id === $this->userSession('id')){
-        $publishedAt = $entry['is_public'] ? date('Y-m-d H:i:s') : null;
-        $relationModel->is_public = $entry['is_public'];
+        $publishedAt = $entry['published_at'] ? date('Y-m-d H:i:s') : null;
         $relationModel->published_at = $publishedAt;
         $relationModel->save();
         foreach($entry['sub_relations'] as $subRelation){
           $relationModel = (new App\Models\Relation())->find($subRelation['id']);
           if($relationModel){
             if($relationModel->user_id === $this->userSession('id')){
-              $relationModel->is_public = $entry['is_public'];
               $relationModel->published_at = $publishedAt;
               $relationModel->save();
             }
@@ -255,7 +231,7 @@ class RelationController extends GenericController
     $logicTreeModel->user_id = $relation['user_id'];
     $logicTreeModel->name = $relation['statement']['text'];
     $logicTreeModel->statement_id = $relation['statement']['id'];
-    $logicTreeModel->is_public = $relation['is_public'];
+    $logicTreeModel->published_at = $relation['published_at'];
     $logicTreeModel->save();
     return $logicTreeModel->id;
   }

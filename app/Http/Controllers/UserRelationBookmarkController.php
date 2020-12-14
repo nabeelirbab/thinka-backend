@@ -41,7 +41,7 @@ class UserRelationBookmarkController extends GenericController
       ]
     ];
     $this->retrieveCustomQueryModel = function($queryModel, &$leftJoinedTable){
-      $queryModel = $queryModel->where('user_relation_bookmarks.user_id', $this->userSession('id')); // ->where('is_public', 1)
+      $queryModel = $queryModel->where('user_relation_bookmarks.user_id', $this->userSession('id'));
       return $queryModel;
     };
     $this->initGenericController();

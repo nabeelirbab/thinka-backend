@@ -9,5 +9,5 @@ use Illuminate\Database\Eloquent\Model;
 class LogicTree extends GenericModel
 {
     use HasFactory;
-    protected $validationRuleNotRequired = ['user_id'];
+    protected $validationRuleNotRequired = ['user_id', 'published_at'];
 }

@@ -10,14 +10,14 @@ class Relation extends GenericModel
 {
     use HasFactory;
     protected $fillable = ['logic_tree_id'];
-    protected $validationRuleNotRequired = ['user_id', 'impact', 'impact_amount', 'risk_plan_cost', 'residual_risk', 'relevance_row', 'is_public'];
+    protected $validationRuleNotRequired = ['user_id', 'impact', 'impact_amount', 'risk_plan_cost', 'residual_risk', 'relevance_row', 'published_at'];
     public function logic_tree(){
         return $this->belongsTo('App\Models\LogicTree');
     }
     public function relations(){
         return $this->hasMany('App\Models\Relation', 'parent_relation_id')->where(function($query){
-            $query->where('user_id', $this->userSession('id')); // ->where('is_public', 1)
-            $query->orWhere('is_public', 1);
+            $query->where('user_id', $this->userSession('id'));
+            $query->orWhereNotNull('published_at');
         });
     }
     public function statement(){

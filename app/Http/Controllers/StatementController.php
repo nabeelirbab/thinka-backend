@@ -51,6 +51,12 @@ class StatementController extends GenericController
       $relation = isset($entry['relation']) ? $entry['relation'] : null;
       unset($entry['relation']);
       $entry['user_id'] = $this->userSession('id');
+      if(isset($entry['is_public']) && $entry['is_public']){
+        $entry['published_at'] = date('Y-m-d H:i:s');
+      }else{
+        $entry['published_at'] = null;
+      }
+      unset($entry['is_public']);
       if(!isset($entry['id']) || !$entry['id']){
         $genericCreate = new GenericCreate($this->tableStructure, $this->model);
         $resultObject['success'] = $genericCreate->create($entry);
@@ -66,7 +72,7 @@ class StatementController extends GenericController
       if($resultObject['success']){
         if($relation){
           $relation['statement_id'] = $resultObject['success']['id'];
-          $relation['is_public'] = $entry['is_public'];
+          $relation['published_at'] = $entry['published_at'];
           if(!isset($relation['logic_tree_id'])){
             $relation['logic_tree_id'] = $resultObject['success']['logic_tree']['id'];
           }
@@ -110,7 +116,7 @@ class StatementController extends GenericController
           "code" => 2,
           "message" => "Statement not found or you do not own it"
         ]);
-      }else if(count($relation) && $relation[0]->is_public){
+      }else if(count($relation) && $relation[0]->published_at){
         $this->responseGenerator->setFail([
           "code" => 3,
           "message" => 'You cannot modify published statements'
@@ -148,7 +154,7 @@ class StatementController extends GenericController
     $logicTreeModel->user_id = $this->userSession('id');
     $logicTreeModel->name = $statement['text'];
     $logicTreeModel->statement_id = $statement['id'];
-    $logicTreeModel->is_public = $statement['is_public'];
+    $logicTreeModel->published_at = $statement['published_at'];
     $logicTreeModel->save();
     return $logicTreeModel->id;
   }
