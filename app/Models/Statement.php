@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class Statement extends GenericModel
 {
     use HasFactory;
-    protected $validationRuleNotRequired = ['user_id', 'scope_id', 'statement_certainty_id', 'scope', 'statement_certainty', 'synopsis', 'comment'];
+    protected $validationRuleNotRequired = ['user_id', 'scope_id', 'statement_certainty_id', 'scope', 'statement_certainty', 'synopsis', 'context'];
     public function logic_tree(){
         return $this->hasOne('App\Models\LogicTree');
     }

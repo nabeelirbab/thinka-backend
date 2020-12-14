@@ -82,7 +82,7 @@ $apiResource = [
   'scope',
   'relation',
   'user-relation-bookmark',
-  'user-relation-setting'
+  'user-relation-context-lock'
 ];
 $customAPIResources = [
   'user/request-change-password',

@@ -30,6 +30,6 @@ class UserRelationBookmarks extends Migration
      */
     public function down()
     {
-        //
+        Schema::dropIfExists('user_relation_bookmarks');
     }
 }

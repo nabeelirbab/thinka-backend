@@ -110,6 +110,18 @@ class RelationController extends GenericController
       'foreign_tables' => [
         'statement' => [
           "is_child" => true
+        ],
+        "user" => [
+          'validation_required' => false,
+          'foreign_tables' => [
+            "user_basic_information" => [
+              'validation_required' => false,
+              "is_child" => false,
+            ]
+          ]
+        ],
+        "user_relation_context_locks" => [
+          'validation_required' => false,
         ]
       ]
     ];
