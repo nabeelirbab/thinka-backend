@@ -15,7 +15,6 @@ class ModifyStatementsRenameCommentToContext extends Migration
     {
         Schema::table('statements', function (Blueprint $table) {
             $table->text('context')->nullable()->after('statement_certainty')->comment('A tag label representing the context of this statement.');
-            $table->dropColumn('comment');
         });
         if (Schema::hasColumn('statements', 'comment')){
             Schema::table('statements', function (Blueprint $table){
