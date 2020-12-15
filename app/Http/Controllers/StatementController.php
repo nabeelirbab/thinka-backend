@@ -123,21 +123,35 @@ class StatementController extends GenericController
         ]);
       }else{
         $relation = $relation[0];
+        $notificationMessage = '';
         unset($entry['relation']);
+        $statementModel = (new App\Models\Statement())->find($entry['id']);
         if(isset($entry['id']) && !isset($entry['old_statement_id'])){ // if old_statement_id exists, then the user choose a statement from suggestion
-          $statementModel = (new App\Models\Statement())->find($entry['id']);
-          $statementModel->text = $entry['text'];
-          $statementModel->statement_type_id = $entry['statement_type_id'];
+          if($statementModel->text !== $entry['text']){
+            $notificationMessage = "Updated Statement from " . $statementModel->text.". ";
+            $statementModel->text = strip_tags($entry['text']);
+          }
+          if($statementModel->statement_type_id !== $entry['statement_type_id']){
+            $notificationMessage = $notificationMessage . "Changed statement type.";
+            $statementModel->statement_type_id = $entry['statement_type_id'];
+          }
           $statementModel->save();
           $relation->statement_id = $statementModel->id;
-        }else{
+        }else{ // only change the statement id. It means user select a suggestion
           $relation->statement_id = $entry['id'];
+          $notificationMessage = 'Changed statement from ' . $statementModel->text;
         }
         unset($updatedRelation['relevance_window']);
+        if(isset($updatedRelation['relation_type_id']) && $updatedRelation['relation_type_id'] !== $relation->relation_type_id){
+          $notificationMessage .= "Changed Relation Type.";
+        }
         foreach($updatedRelation as $column => $value){
           $relation->$column = $value;
         }
         $relation->save();
+        $notification = new App\Models\Notification();
+        $notificationId = $notification->createStatementUpdateNotification($relation->id, $this->userSession('id'), $notificationMessage);
+        $this->responseGenerator->addDebug('notificaiton id', $notificationId);
         $this->responseGenerator->setSuccess([
           'id' => $relation->statement_id,
           'relation' => [

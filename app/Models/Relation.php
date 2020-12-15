@@ -32,7 +32,7 @@ class Relation extends GenericModel
     public function parent_relation(){ // statement_2
         return $this->belongsTo('App\Models\Relation', 'parent_relation_id');
     }
-    public function user(){ // statement_2
+    public function user(){
         return $this->belongsTo('App\Models\User');
     }
 }

@@ -7,6 +7,8 @@ use App\Generic\GenericController;
 use Illuminate\Support\Facades\Validator;
 use App;
 use DB;
+use App\Generic\Core\GenericFormValidation;
+use App\Generic\Core\GenericUpdate;
 use App\Generic\Core\GenericRetrieve as GenericRetrieve;
 
 class RelationController extends GenericController
@@ -108,6 +110,35 @@ class RelationController extends GenericController
     }
     return $relations;
   }
+  public function update(Request $request){
+    if(!$this->checkAuthenticationRequirement($this->basicOperationAuthRequired["update"])){
+      return $this->responseGenerator->generate();
+    }
+    $entry = $request->all();
+    $resultObject = [
+      "success" => false,
+      "fail" => false
+    ];
+    $validation = new App\Generic\Core\GenericFormValidation($this->tableStructure, "update");
+    if($validation->isValid($entry)){
+      $genericUpdate = new App\Generic\Core\GenericUpdate($this->tableStructure, $this->model);
+      $resultObject['success'] = $genericUpdate->update($entry);
+      if(isset($entry['impact_amount'])){
+        $notification = new App\Models\Notification();
+        $notification->createStatementUpdateNotification($entry['id'], $this->userSession('id'), "Updated impact amount to ". $entry['impact_amount'] . "%");
+      }
+      $this->responseGenerator->addDebug("relation id", $entry['id']);
+    }else{
+      $resultObject['fail'] = [
+        "code" => 1,
+        "message" => $validation->validationErrors
+      ];
+
+    }
+    $this->responseGenerator->setSuccess($resultObject['success']);
+    $this->responseGenerator->setFail($resultObject['fail']);
+    return $this->responseGenerator->generate();
+  }
   public function publish(Request $request){
     $validator = Validator::make($request->all(), [
       'id' => 'required|exists:relations,id',
@@ -136,6 +167,8 @@ class RelationController extends GenericController
             }
           }
         }
+        $notification = new App\Models\Notification();
+        $notification->createStatementUpdateNotification($entry['id'], $this->userSession('id'), $publishedAt ? 'Statement has been published' : 'Statement has been unpublished');
         $this->responseGenerator->setSuccess(true);
       }else{
         $this->responseGenerator->setFail([

@@ -82,7 +82,8 @@ $apiResource = [
   'scope',
   'relation',
   'user-relation-bookmark',
-  'user-relation-context-lock'
+  'user-relation-context-lock',
+  'notification-user'
 ];
 $customAPIResources = [
   'user/request-change-password',
@@ -96,6 +97,7 @@ $customAPIResources = [
   'relation/delete-partial',
   'relation/delete-clip',
   'relation/my-list',
+  'notification-user/change-status'
 ];
 $api_resource($apiResource);
 $custom_api($customAPIResources);
