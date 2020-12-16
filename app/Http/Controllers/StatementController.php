@@ -7,6 +7,7 @@ use App;
 use App\Generic\GenericController;
 use App\Generic\Core\GenericFormValidation;
 use App\Generic\Core\GenericCreate;
+use App\Generic\Core\GenericUpdate;
 use Illuminate\Support\Facades\Validator;
 
 class StatementController extends GenericController
@@ -81,6 +82,9 @@ class StatementController extends GenericController
           foreach($relation as $key => $value){
             $relationModel->$key = $value;
           }
+          // if(isset($relation['parent_relation_id']) && $relation['parent_relation_id']){
+          //   (new App\Models\Notification())->createRelationUpdateNotification($relation['parent_relation_id'], $this->userSession('id'), $relation['relevance_window'] === 0 ? 'A supporting statement has been added' : 'A counter statement has been added');
+          // }
           $relationModel->save();
           $resultObject['success']['relation']['id'] = $relationModel->id;
         }
@@ -150,8 +154,7 @@ class StatementController extends GenericController
         }
         $relation->save();
         $notification = new App\Models\Notification();
-        $notificationId = $notification->createStatementUpdateNotification($relation->id, $this->userSession('id'), $notificationMessage);
-        $this->responseGenerator->addDebug('notificaiton id', $notificationId);
+        $notification->createRelationUpdateNotification($relation->id, $this->userSession('id'), $notificationMessage);
         $this->responseGenerator->setSuccess([
           'id' => $relation->statement_id,
           'relation' => [
@@ -161,6 +164,37 @@ class StatementController extends GenericController
       }
     }
     
+    return $this->responseGenerator->generate();
+  }
+  public function update(Request $request){
+    if(!$this->checkAuthenticationRequirement($this->basicOperationAuthRequired["update"])){
+      return $this->responseGenerator->generate();
+    }
+    $entry = $request->all();
+    $resultObject = [
+      "success" => false,
+      "fail" => false
+    ];
+    $validation = new GenericFormValidation($this->tableStructure, 'update');
+    if($validation->isValid($entry)){
+      $genericUpdate = new GenericUpdate($this->tableStructure, $this->model);
+      $resultObject['success'] = $genericUpdate->update($entry);
+      $notificationMessage = "";
+      if(isset($entry['scope_id'])){
+        $notificationMessage .= 'Scope has been changed.';
+      }else{
+        $notificationMessage .= 'Statement has been updated.';
+      }
+      (new App\Models\Notification())->createStatementUpdateNotification($entry['id'], null, $this->userSession('id'), $notificationMessage);
+    }else{
+      $resultObject['fail'] = [
+        "code" => 1,
+        "message" => $validation->validationErrors
+      ];
+
+    }
+    $this->responseGenerator->setSuccess($resultObject['success']);
+    $this->responseGenerator->setFail($resultObject['fail']);
     return $this->responseGenerator->generate();
   }
   private function createLogicTree($statement){

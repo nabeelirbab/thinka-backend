@@ -13,9 +13,22 @@ class NotificationController extends GenericController
           ],
           'foreign_tables' => [
                 'notification_relation_update' => [
-                    "true_table" => 'relations',
                     "is_child" => true, 
                     "validation_required" => false,
+                    'foreign_tables' => [
+                        "user" => [
+                            'validation_required' => false,
+                                'foreign_tables' => [
+                                    "user_basic_information" => [
+                                    'validation_required' => false,
+                                    "is_child" => false,
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                'notification_statement_update' => [
+                    "is_child" => true,
                     'foreign_tables' => [
                         "user" => [
                             'validation_required' => false,

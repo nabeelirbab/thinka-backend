@@ -125,7 +125,7 @@ class RelationController extends GenericController
       $resultObject['success'] = $genericUpdate->update($entry);
       if(isset($entry['impact_amount'])){
         $notification = new App\Models\Notification();
-        $notification->createStatementUpdateNotification($entry['id'], $this->userSession('id'), "Updated impact amount to ". $entry['impact_amount'] . "%");
+        $notification->createRelationUpdateNotification($entry['id'], $this->userSession('id'), "Updated impact amount to ". $entry['impact_amount'] . "%");
       }
       $this->responseGenerator->addDebug("relation id", $entry['id']);
     }else{
@@ -167,8 +167,13 @@ class RelationController extends GenericController
             }
           }
         }
+        if($relationModel->parent_relation_id === null){
+          $logicTreeModel = (new App\Models\LogicTree())->find($relationModel->logic_tree_id);
+          $logicTreeModel->published_at = $publishedAt;
+          $logicTreeModel->save();
+        }
         $notification = new App\Models\Notification();
-        $notification->createStatementUpdateNotification($entry['id'], $this->userSession('id'), $publishedAt ? 'Statement has been published' : 'Statement has been unpublished');
+        $notification->createRelationUpdateNotification($entry['id'], $this->userSession('id'), $publishedAt ? 'Statement has been published' : 'Statement has been unpublished');
         $this->responseGenerator->setSuccess(true);
       }else{
         $this->responseGenerator->setFail([
@@ -280,6 +285,7 @@ class RelationController extends GenericController
     }else{
       $entry = $request->all();
       $relationModel = ((new App\Models\Relation())->where('id', $entry['id'])->where('user_id', $this->userSession('id'))->get())->toArray();
+      (new App\Models\Notification())->createRelationUpdateNotification($entry['id'], $this->userSession('id'), 'Statement has been deleted together with its supporting and counter statements');
       if(count($relationModel)){
         $this->recursiveDeleteAll($entry['id']);
         $this->responseGenerator->setSuccess(true);
@@ -295,10 +301,8 @@ class RelationController extends GenericController
   private function recursiveDeleteAll($relationId){
     $relation = (new App\Models\Relation())->with(['relations'])->find($relationId);
     $subRelations = ($relation->toArray())['relations'];
+    (new App\Models\Notification())->createRelationUpdateNotification($relationId, $this->userSession('id'), 'Statement has been deleted');
     $userRelationBookmarks = (new App\Models\UserRelationBookmark())->where('relation_id', $relationId)->orWhere('sub_relation_id', $relationId)->delete();
-    // if(count($userRelationBookmarks)){
-    //   $userRelationBookmarks[0]->delete(); // delete bookmarks
-    // }
     $relation->delete();
     foreach($subRelations as $subRelation){
       $this->recursiveDeleteAll($subRelation['id']);

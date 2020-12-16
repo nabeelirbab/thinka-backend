@@ -15,10 +15,11 @@ class Relation extends GenericModel
         return $this->belongsTo('App\Models\LogicTree');
     }
     public function relations(){
-        return $this->hasMany('App\Models\Relation', 'parent_relation_id')->where(function($query){
-            $query->where('user_id', $this->userSession('id'));
-            $query->orWhereNotNull('published_at');
-        });
+        return $this->hasMany('App\Models\Relation', 'parent_relation_id')
+            ->where(function($query){
+                $query->where('user_id', $this->userSession('id'));
+                $query->orWhereNotNull('published_at');
+            });
     }
     public function statement(){
         return $this->belongsTo('App\Models\Statement');
@@ -34,5 +35,8 @@ class Relation extends GenericModel
     }
     public function user(){
         return $this->belongsTo('App\Models\User');
+    }
+    public function all_user_relation_bookmarks(){
+        return $this->hasMany('App\Models\UserRelationBookmark');
     }
 }

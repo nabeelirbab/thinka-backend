@@ -19,4 +19,7 @@ class Statement extends GenericModel
     public function relation(){
         return $this->hasOne('App\Models\Relation');
     }
+    public function relations(){
+        return $this->hasMany('App\Models\Relation');
+    }
 }

@@ -63,6 +63,7 @@ class GenericRetrieve extends Controller
       $select = [];
       $with = [];
       // $queryModel->addSelect('id');
+      
       foreach($requestQuery['select'] as $selectIndex => $select){ // add select statement
         if($select == null){ //column not foreign table
           $slectedColumn;
@@ -71,10 +72,15 @@ class GenericRetrieve extends Controller
           }else{
             $slectedColumn = $tableStructure['true_table'].".".$selectIndex;
           }
-
+          
           $queryModel = $queryModel->addSelect(DB::raw("$slectedColumn as ".$selectIndex));
         }else{
+          
           $with[$selectIndex] = function($queryModel2) use($select, $selectIndex, $tableStructure){
+            if(isset($select['with_trash'])){
+              $queryModel2 = $queryModel2->withTrashed();
+            }
+            // printR($select, $selectIndex);
             $this->addQueryStatements($queryModel2, $select, $tableStructure['foreign_tables'][$selectIndex], []);
           };
         }
@@ -156,7 +162,6 @@ class GenericRetrieve extends Controller
           $mainTable = $tableStructure['table_name'];
           if(isset($tableStructure['foreign_tables'][$table])){
             if($tableStructure['foreign_tables'][$table]['is_child']){
-              printR($tableStructure['foreign_tables'][$table]);
               $foreignColumn = str_singular($mainTable)."_id";
               if(isset($tableStructure['foreign_tables'][$table]['foreign_column'])){
                 $foreignColumn = $tableStructure['foreign_tables'][$table]['foreign_column'];
@@ -165,7 +170,6 @@ class GenericRetrieve extends Controller
                 $join->on(str_plural($mainTable).".id", '=', $tablePlural.".".$foreignColumn);
               });
             }else{
-              // printR($tableStructure['foreign_tables'][$table]);
               $foreignColumn = str_singular($table)."_id";
               if(isset($tableStructure['foreign_tables'][$table]['foreign_column'])){
                 $foreignColumn = $tableStructure['foreign_tables'][$table]['foreign_column'];
@@ -207,6 +211,7 @@ class GenericRetrieve extends Controller
           isset($select['condition']) ? $cleanRequestQuery[$selectIndex]['condition'] = $select['condition']: null;
           isset($select['limit']) ? $cleanRequestQuery[$selectIndex]['limit'] = $select['limit']: null;
           isset($select['sort']) ? $cleanRequestQuery[$selectIndex]['sort'] = $select['sort']: null;
+          isset($select['with_trash']) ? $cleanRequestQuery[$selectIndex]['with_trash'] = $select['with_trash']: null;
           if(isset($select['limit'])){
             $requestPostQuery[$selectIndex]['limit'] = $select['limit'];
           }
@@ -214,7 +219,6 @@ class GenericRetrieve extends Controller
       }
       $cleanRequestQuery['id'] = null;
       if($parentTable){
-        // printR($tableStructure, str_singular($parentTable)."_id");
         if(isset($tableStructure['columns'][str_singular($parentTable)."_id"])){
           $cleanRequestQuery[str_singular($parentTable)."_id"] = null;
         }
