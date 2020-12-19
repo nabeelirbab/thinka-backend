@@ -156,24 +156,12 @@ class RelationController extends GenericController
       $relationModel = (new App\Models\Relation())->find($entry['id']);
       if($relationModel->user_id === $this->userSession('id')){
         $publishedAt = $entry['published_at'] ? date('Y-m-d H:i:s') : null;
-        $relationModel->published_at = $publishedAt;
-        $relationModel->save();
-        foreach($entry['sub_relations'] as $subRelation){
-          $relationModel = (new App\Models\Relation())->find($subRelation['id']);
-          if($relationModel){
-            if($relationModel->user_id === $this->userSession('id')){
-              $relationModel->published_at = $publishedAt;
-              $relationModel->save();
-            }
-          }
-        }
+        $this->recursivePublish($entry['id'], $publishedAt);
         if($relationModel->parent_relation_id === null){
           $logicTreeModel = (new App\Models\LogicTree())->find($relationModel->logic_tree_id);
           $logicTreeModel->published_at = $publishedAt;
           $logicTreeModel->save();
         }
-        $notification = new App\Models\Notification();
-        $notification->createRelationUpdateNotification($entry['id'], $this->userSession('id'), $publishedAt ? 'Statement has been published' : 'Statement has been unpublished');
         $this->responseGenerator->setSuccess(true);
       }else{
         $this->responseGenerator->setFail([
@@ -183,6 +171,25 @@ class RelationController extends GenericController
       }
     }
     return $this->responseGenerator->generate();
+  }
+  private function recursivePublish($relationId, $publishedAt){
+    $relation = (new App\Models\Relation())->with(['relations' => function($query){
+      $query->where('user_id', $this->userSession('id'));
+    }])->find($relationId);
+    $subRelations = ($relation->toArray())['relations'];
+    if($publishedAt && !$relation->published_at){ // publish and relation not yet published
+      $relation->published_at = $publishedAt;
+      $relation->save();
+      (new App\Models\Notification())->createRelationUpdateNotification($relationId, $this->userSession('id'), 'Statement has been published');
+    }else if(!$publishedAt && $relation->published_at){ // unpublish and relation is already published
+      $relation->published_at = null;
+      $relation->save();
+      (new App\Models\Notification())->createRelationUpdateNotification($relationId, $this->userSession('id'), 'Statement has been unpublished');
+    }
+    foreach($subRelations as $subRelation){
+      $this->recursivePublish($subRelation['id'], $publishedAt);
+    }
+    return true;
   }
   public function deletePartial(Request $request){
     $validator = Validator::make($request->all(), [
