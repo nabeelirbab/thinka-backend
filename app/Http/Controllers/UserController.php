@@ -99,8 +99,6 @@ class UserController extends GenericController
       $this->responseGenerator->setFail($resultObject['fail']);
       return $this->responseGenerator->generate();
     }
-
-
     public function changePassword(Request $request){
       if(!auth()->user()){
         $this->responseGenerator->setFail(["code" => 2, "message" => "Not Logged In"]);

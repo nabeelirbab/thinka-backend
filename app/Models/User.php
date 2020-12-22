@@ -14,6 +14,7 @@ class User extends GenericModel
 
     // protected $fillable = ['user_id', 'first_name', 'middle_name', 'last_name', 'mobile_number', 'gender', 'birthdate', 'occupation'];
     protected $validationRules = [
+      'username' => 'required|alpha_num|unique:users,username,except,id',
       'email' => 'required|email|unique:users,email,except,id',
       'password' => 'required|min:3',
       'pin' => 'required|size:4'
@@ -21,9 +22,9 @@ class User extends GenericModel
     protected $defaultValue = [
       'middle_name' => ''
     ];
-    protected $validationRuleNotRequired = ['username', 'middle_name', 'status', 'user_type_id'];
+    protected $validationRuleNotRequired = ['middle_name', 'status', 'user_type_id'];
     public function systemGenerateValue($data){
-      (isset($data['email'])) ? $data['username'] = $data['email'] : null;
+      // (isset($data['email'])) ? $data['username'] = $data['email'] : null;
       (isset($data['password'])) ? $data['password'] = Hash::make($data['password']) : null;
       if((!isset($data['id']) || $data['id'] == 0) && !isset($data['status'])){ // if create
         $data['status'] = 1;
