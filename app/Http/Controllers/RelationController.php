@@ -39,7 +39,7 @@ class RelationController extends GenericController
           ]
         ],
         'logic_tree' => [
-          "is_child" => true, 
+          "is_child" => false, 
           'validation_required' => false
         ],
         "user" => [
@@ -172,6 +172,39 @@ class RelationController extends GenericController
     }
     return $this->responseGenerator->generate();
   }
+  public function join(Request $request){
+    $validator = Validator::make($request->all(), [
+      'parent_relation_id' => 'required|exists:relations,id',
+      'relation_id' => 'required|exists:relations,id',
+    ]);
+    if($validator->fails()){
+      $this->responseGenerator->setFail([
+        "code" => 1,
+        "message" => $validator->errors()->toArray()
+      ]);
+    }else{
+      $entry = $request->all();
+      $relationModel = (new App\Models\Relation())->find($entry['relation_id']);
+      $parentRelationModel = (new App\Models\Relation())->find($entry['parent_relation_id']);
+      if($relationModel->user_id === $this->userSession('id')){
+        $relationModel->parent_relation_id = $entry['parent_relation_id'];
+        $relationModel->relevance_window = $entry['relevance_window'];
+        $relationModel->save();
+        $subRelations = $this->recursiveUpdate($entry['relation_id'], $parentRelationModel->logic_tree_id);
+        $logicTreeId = (new App\Models\LogicTree())->find($relationModel->logic_tree_id);
+        $this->responseGenerator->setSuccess([
+          'id' => $entry['relation_id'],
+          'parent_relation_id' => $entry['relation_id'],
+        ]);
+      }else{
+        $this->responseGenerator->setFail([
+          "code" => 2,
+          "message" => 'Not owner'
+        ]);
+      }
+    }
+    return $this->responseGenerator->generate();
+  }
   private function recursivePublish($relationId, $publishedAt){
     $relation = (new App\Models\Relation())->with(['relations' => function($query){
       $query->where('user_id', $this->userSession('id'));
@@ -266,10 +299,10 @@ class RelationController extends GenericController
     $subRelations = ($relation->toArray())['relations'];
     $relation->logic_tree_id = $newLogicTreeId;
     $relation->save();
-    foreach($subRelations as $subRelation){
-      $this->recursiveUpdate($subRelation['id'], $newLogicTreeId);
+    foreach($subRelations as $key => $subRelation){
+      $subRelations[$key] = $this->recursiveUpdate($subRelation['id'], $newLogicTreeId);
     }
-    return true;
+    return $subRelations;
   }
   private function createLogicTree($relation){
     $logicTreeModel = new App\Models\LogicTree();
