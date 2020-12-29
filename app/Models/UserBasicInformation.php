@@ -7,7 +7,7 @@ use App\Generic\GenericModel;
 class UserBasicInformation extends GenericModel
 {
     protected $table = 'user_basic_informations';
-    protected $validationRuleNotRequired = ['birthdate', 'middle_name', 'website', 'languages', 'title'];
+    protected $validationRuleNotRequired = ['first_name', 'last_name', 'birthdate', 'middle_name', 'website', 'languages', 'title'];
     protected $formulatedColumn = [
       'full_name' => "CONCAT(last_name, ', ', first_name)",
       'full_name_2' => "CONCAT(user_basic_informations.first_name, ' ',user_basic_informations.last_name)",

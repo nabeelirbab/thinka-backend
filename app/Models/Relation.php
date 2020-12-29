@@ -30,6 +30,9 @@ class Relation extends GenericModel
     public function user_relation_bookmarks(){
         return $this->hasMany('App\Models\UserRelationBookmark')->where('user_id', $this->userSession('id'));
     }
+    public function all_user_relation_bookmarks(){
+        return $this->hasMany('App\Models\UserRelationBookmark');
+    }
     public function user_relation_context_locks(){
         return $this->hasMany('App\Models\UserRelationContextLock')->where('user_id', $this->userSession('id'));
     }
