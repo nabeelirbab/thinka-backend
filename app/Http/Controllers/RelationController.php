@@ -186,7 +186,12 @@ class RelationController extends GenericController
       $entry = $request->all();
       $relationModel = (new App\Models\Relation())->find($entry['relation_id']);
       $parentRelationModel = (new App\Models\Relation())->find($entry['parent_relation_id']);
-      if($relationModel->user_id === $this->userSession('id')){
+      if($relationModel->logic_tree_id === $parentRelationModel->logic_tree_id){
+        $this->responseGenerator->setFail([
+          "code" => 3,
+          "message" => 'Circular relationss not allowed'
+        ]);
+      }else if($relationModel->user_id === $this->userSession('id')){
         $relationModel->parent_relation_id = $entry['parent_relation_id'];
         $relationModel->relevance_window = $entry['relevance_window'];
         $relationModel->save();
@@ -295,8 +300,8 @@ class RelationController extends GenericController
     return $this->responseGenerator->generate();
   }
   private function recursiveUpdate($relationId, $newLogicTreeId){
-    $relation = (new App\Models\Relation())->with(['relations'])->find($relationId);
-    $subRelations = ($relation->toArray())['relations'];
+    $relation = (new App\Models\Relation())->with(['all_relations'])->find($relationId);
+    $subRelations = ($relation->toArray())['all_relations'];
     $relation->logic_tree_id = $newLogicTreeId;
     $relation->save();
     foreach($subRelations as $key => $subRelation){

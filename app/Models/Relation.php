@@ -21,6 +21,9 @@ class Relation extends GenericModel
                 $query->orWhereNotNull('published_at');
             });
     }
+    public function all_relations(){
+        return $this->hasMany('App\Models\Relation', 'parent_relation_id');
+    }
     public function statement(){
         return $this->belongsTo('App\Models\Statement');
     }
