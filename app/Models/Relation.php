@@ -42,7 +42,4 @@ class Relation extends GenericModel
     public function user(){
         return $this->belongsTo('App\Models\User');
     }
-    public function all_user_relation_bookmarks(){
-        return $this->hasMany('App\Models\UserRelationBookmark');
-    }
 }
