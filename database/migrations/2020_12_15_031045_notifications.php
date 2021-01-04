@@ -15,7 +15,7 @@ class Notifications extends Migration
     {
         Schema::create('notifications', function(Blueprint $table){
             $table->bigIncrements('id');
-            $table->unsignedSmallInteger('type')->comment('1 - system, 2 - relation changed, 3 - statement changed');
+            $table->unsignedSmallInteger('type')->comment('1 - system, 2 - relation changed, 3 - statement changed, 4 - sub relation');
             $table->timestamps();
             $table->softDeletes();
         });

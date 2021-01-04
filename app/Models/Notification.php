@@ -12,6 +12,34 @@ class Notification extends GenericModel
     public function createNotification(){
 
     }
+    public function createSubRelationUpdateNotification($subRelationId, $userId, $userRelations, $message){
+        $this->type = 4;
+        $this->save();
+        $notificationId = $this->id;
+        $createdAt = $this->created_at;
+        $notifcationSubRelationUpdateModel = new NotificationSubRelationUpdate();
+        $notifcationSubRelationUpdateModel->notification_id = $notificationId;
+        $notifcationSubRelationUpdateModel->user_id = $userId;
+        $notifcationSubRelationUpdateModel->sub_relation_id = $subRelationId;
+        $notifcationSubRelationUpdateModel->message = $message;
+        $notifcationSubRelationUpdateModel->save();
+        $notifcationRelationUpdateModelId = $notifcationSubRelationUpdateModel->id;
+        $notificationUsers = [];
+        foreach($userRelations as $key => $userRelation){
+            $userRelations[$key]['notification_sub_relation_update_id'] = $notifcationRelationUpdateModelId;
+            $notificationUsers[] = [
+                'notification_id' => $notificationId,
+                'user_id' => $userRelation['user_id'],
+                'status' => 0,
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt,
+            ];
+        }
+        $notificationSubRelationUpdateUserRelationModel = new NotificationSubRelationUpdateUserRelation();
+        $notificationSubRelationUpdateUserRelationModel->insert($userRelations);
+        (new NotificationUser())->insert($notificationUsers);
+
+    }
     public function createRelationUpdateNotification($relationId, $userId, $message){
         $this->type = 2;
         $this->save();
@@ -71,6 +99,9 @@ class Notification extends GenericModel
 
     public function notification_relation_update(){
         return $this->hasOne('App\Models\NotificationRelationUpdate');
+    }
+    public function notification_sub_relation_update(){
+        return $this->hasOne('App\Models\NotificationSubRelationUpdate');
     }
     public function notification_statement_update(){
         return $this->hasOne('App\Models\NotificationStatementUpdate');

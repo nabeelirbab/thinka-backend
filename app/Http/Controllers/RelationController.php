@@ -156,11 +156,23 @@ class RelationController extends GenericController
       $relationModel = (new App\Models\Relation())->find($entry['id']);
       if($relationModel->user_id === $this->userSession('id')){
         $publishedAt = $entry['published_at'] ? date('Y-m-d H:i:s') : null;
-        $this->recursivePublish($entry['id'], $publishedAt);
+        $relationToNotifyList = array(); // contains object where key is the published/unpublished statements and the value is an array of parent ids
+        $this->recursivePublish($entry['id'], $publishedAt, $relationToNotifyList, [], []);
+        $this->responseGenerator->addDebug('$relationToNotifyList', $relationToNotifyList);
         if($relationModel->parent_relation_id === null){
           $logicTreeModel = (new App\Models\LogicTree())->find($relationModel->logic_tree_id);
           $logicTreeModel->published_at = $publishedAt;
           $logicTreeModel->save();
+        }
+        $parentIds = [];
+        if($relationModel->parent_relation_id){
+          $parentIds = $this->getParentIds($relationModel->id);
+        }
+        $this->responseGenerator->addDebug('$parentIds'. $relationModel->parent_relation_id, $parentIds);
+        $notificationMessage = $publishedAt ? 'A sub statement has been added or published in your bookmarked statement' : 'A statement has been unpublished in your bookmarked statement';
+        foreach($relationToNotifyList as $relationToNotifyId => $relationToNotifyList){
+          $toNotifyRelationArray = array_merge($parentIds, $relationToNotifyList['parents']);
+          $this->notifyPublishedStatementParents($relationToNotifyId, $notificationMessage, $toNotifyRelationArray, $relationToNotifyList['users']); // notify parents authors and bookmarkers
         }
         $this->responseGenerator->setSuccess(true);
       }else{
@@ -171,6 +183,30 @@ class RelationController extends GenericController
       }
     }
     return $this->responseGenerator->generate();
+  }
+  private function getParentIds($relationId){
+    $parentIds = [];
+    $hasParent = true;
+    $currentRelationId = $relationId;
+    do{
+      $relationModel = (new App\Models\Relation())->find($currentRelationId);
+      if($relationModel->id && $relationModel->parent_relation_id){
+        $parentIds[] = $relationModel->parent_relation_id;
+        $currentRelationId = $relationModel->parent_relation_id;
+      }else{
+        $currentRelationId = null;
+      }
+    }while($currentRelationId);
+    return $parentIds;
+  }
+  private function notifyPublishedStatementParents($publishedRelationId, $message, $parentIds, $userIds){ // publish and unpublish
+    $userRelationBookmarks = (new App\Models\UserRelationBookmark())
+      ->select(['user_id', 'relation_id'])
+      ->whereIn('relation_id', $parentIds)
+      ->get()->toArray();
+    $this->responseGenerator->addDebug('$userRelationBookmarks'.$publishedRelationId, $userRelationBookmarks);
+    $usersToNotify = array_merge($userRelationBookmarks, $userIds);
+    (new App\Models\Notification())->createSubRelationUpdateNotification($publishedRelationId, $this->userSession('id'), $userRelationBookmarks, $message);
   }
   public function join(Request $request){
     $validator = Validator::make($request->all(), [
@@ -184,7 +220,7 @@ class RelationController extends GenericController
       ]);
     }else{
       $entry = $request->all();
-      $relationModel = (new App\Models\Relation())->find($entry['relation_id']);
+      $relationModel = (new App\Models\Relation())->find($entry['all_relation_id']);
       $parentRelationModel = (new App\Models\Relation())->find($entry['parent_relation_id']);
       if($relationModel->logic_tree_id === $parentRelationModel->logic_tree_id){
         $this->responseGenerator->setFail([
@@ -210,22 +246,35 @@ class RelationController extends GenericController
     }
     return $this->responseGenerator->generate();
   }
-  private function recursivePublish($relationId, $publishedAt){
+  private function recursivePublish($relationId, $publishedAt, &$relationToNotifyList, $parentIds, $parentUserIds){
     $relation = (new App\Models\Relation())->with(['relations' => function($query){
       $query->where('user_id', $this->userSession('id'));
     }])->find($relationId);
     $subRelations = ($relation->toArray())['relations'];
+    $message = null;
     if($publishedAt && !$relation->published_at){ // publish and relation not yet published
       $relation->published_at = $publishedAt;
-      $relation->save();
-      (new App\Models\Notification())->createRelationUpdateNotification($relationId, $this->userSession('id'), 'Statement has been published');
+      $message = 'Statement that you bookmarked has been published';
     }else if(!$publishedAt && $relation->published_at){ // unpublish and relation is already published
       $relation->published_at = null;
-      $relation->save();
-      (new App\Models\Notification())->createRelationUpdateNotification($relationId, $this->userSession('id'), 'Statement has been unpublished');
+      $message = 'Statement that you bookmarked has been unpublished';
     }
-    foreach($subRelations as $subRelation){
-      $this->recursivePublish($subRelation['id'], $publishedAt);
+    if($message){
+      $relation->save();
+      (new App\Models\Notification())->createRelationUpdateNotification($relationId, $this->userSession('id'), $message);
+      $relationToNotifyList[$relationId] = [
+        'parents' => $parentIds,
+        'users' => $parentUserIds
+      ];
+    }
+    if(count($subRelations)){
+      $parentIds[] = $relationId;
+      if($this->userSession('user_id') * 1 !== $relation->user_id * 1){
+        $parentUserIds[] = $relation->user_id;
+      }
+      foreach($subRelations as $subRelation){
+        $this->recursivePublish($subRelation['id'], $publishedAt, $relationToNotifyList, $parentIds, $parentUserIds);
+      }
     }
     return true;
   }

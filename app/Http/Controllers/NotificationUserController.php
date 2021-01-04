@@ -11,6 +11,15 @@ class NotificationUserController extends GenericController
 {
     function __construct(){
         $this->model = new App\Models\NotificationUser();
+        $userTemplate = [
+            'validation_required' => false,
+            'foreign_tables' => [
+                "user_basic_information" => [
+                    'validation_required' => false,
+                    "is_child" => false,
+                ]
+            ]
+        ];
         $this->tableStructure = [
             'columns' => [
             ],
@@ -22,15 +31,7 @@ class NotificationUserController extends GenericController
                             "is_child" => true, 
                             "validation_required" => false,
                             'foreign_tables' => [
-                                "user" => [
-                                    'validation_required' => false,
-                                    'foreign_tables' => [
-                                        "user_basic_information" => [
-                                            'validation_required' => false,
-                                            "is_child" => false,
-                                        ]
-                                    ]
-                                ],
+                                "user" => $userTemplate,
                                 "relation" => [
                                     "validation_required" => false,
                                     'foreign_tables' => [
@@ -41,19 +42,41 @@ class NotificationUserController extends GenericController
                                 ]
                             ]
                         ],
+                        'notification_sub_relation_update' => [
+                            "is_child" => true,
+                            "validation_required" => false,
+                            'foreign_tables' => [
+                                "user" => $userTemplate,
+                                "sub_relation" => [
+                                    "true_table" => "relations",
+                                    "validation_required" => false,
+                                    'foreign_tables' => [
+                                        "statement" => [
+                                            "is_child" => false
+                                        ]
+                                    ]
+                                ],
+                                'notification_sub_relation_update_user_relations' => [
+                                    'foreign_tables' => [
+                                        "user" => $userTemplate,
+                                        "relation" => [
+                                            "validation_required" => false,
+                                            'foreign_tables' => [
+                                                "statement" => [
+                                                    "is_child" => false
+                                                ]
+                                            ]
+                                        ]
+                                    ]
+                                ]
+
+                            ]
+                        ],
                         'notification_statement_update' => [
                             "is_child" => true, 
                             "validation_required" => false,
                             'foreign_tables' => [
-                                "user" => [
-                                    'validation_required' => false,
-                                    'foreign_tables' => [
-                                        "user_basic_information" => [
-                                            'validation_required' => false,
-                                            "is_child" => false,
-                                        ]
-                                    ]
-                                ],
+                                "user" => $userTemplate,
                                 "relation" => [
                                     "validation_required" => false
                                 ],
