@@ -63,9 +63,9 @@ class StatementController extends GenericController
         return $this->responseGenerator->generate();
       }
     }
-    // if(isset($entry['id']) && $entry['id']){
-    //   unset($entry['text']);
-    // }
+    if(isset($entry['id']) && $entry['id']){
+      unset($entry['text']);
+    }
     $validation = new GenericFormValidation($this->tableStructure, 'create');
     if($validation->isValid($entry)){
       $relation = isset($entry['relation']) ? $entry['relation'] : null;
@@ -81,7 +81,8 @@ class StatementController extends GenericController
         $genericCreate = new GenericCreate($this->tableStructure, $this->model);
         $resultObject['success'] = $genericCreate->create($entry);
       }else{ // create from existing statement
-        $logicTreeId = $this->createLogicTree($entry);
+        $existingStatement = (new App\Models\Statement())->find($entry['id'])->toArray();
+        $logicTreeId = $this->createLogicTree($existingStatement);
         $resultObject['success'] = [
           "id" => $entry['id'],
           "logic_tree" => [
