@@ -9,6 +9,7 @@ use App\Generic\Core\GenericFormValidation;
 use App\Generic\Core\GenericCreate;
 use App\Generic\Core\GenericUpdate;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class StatementController extends GenericController
 {
@@ -47,6 +48,24 @@ class StatementController extends GenericController
       "success" => false,
       "fail" => false
     ];
+    if(isset($entry['text']) && (!isset($entry['id']) || !$entry['id'])){ // check if statement already exists
+      $statements = (new App\Models\Statement())
+        ->where(DB::raw("REGEXP_REPLACE(text, '[^a-z0-9]', '')"), "like", DB::raw("REGEXP_REPLACE('" . $entry['text'] . "', '[^a-z0-9]', '')") )
+        ->get()->toArray();
+      if(count($statements)){ // statement already existed
+        
+        $this->responseGenerator->setFail([
+          "code" => 4,
+          "message" => [
+            "statement" => $statements[0]
+          ]
+        ]);
+        return $this->responseGenerator->generate();
+      }
+    }
+    // if(isset($entry['id']) && $entry['id']){
+    //   unset($entry['text']);
+    // }
     $validation = new GenericFormValidation($this->tableStructure, 'create');
     if($validation->isValid($entry)){
       $relation = isset($entry['relation']) ? $entry['relation'] : null;

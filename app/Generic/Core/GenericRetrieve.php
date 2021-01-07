@@ -125,6 +125,9 @@ class GenericRetrieve extends Controller
           case 'is_null':
             $queryModel = $queryModel->whereNull(DB::raw($column));
             break;
+          case 'like_alphanumeric_only':
+            $queryModel = $queryModel->where(DB::raw("REGEXP_REPLACE($column, '[^a-z0-9]', '')"), "like", DB::raw("CONCAT('%', REGEXP_REPLACE('" . $condition['value'] . "', '[^a-z0-9]', ''), '%')") );
+            break;
           default:
             $queryModel = $queryModel->where(DB::raw($column), $condition['clause'], $condition['value']);
         }
