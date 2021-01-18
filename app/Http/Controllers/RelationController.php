@@ -220,7 +220,7 @@ class RelationController extends GenericController
       ]);
     }else{
       $entry = $request->all();
-      $relationModel = (new App\Models\Relation())->find($entry['all_relation_id']);
+      $relationModel = (new App\Models\Relation())->find($entry['relation_id']);
       $parentRelationModel = (new App\Models\Relation())->find($entry['parent_relation_id']);
       if($relationModel->logic_tree_id === $parentRelationModel->logic_tree_id){
         $this->responseGenerator->setFail([
