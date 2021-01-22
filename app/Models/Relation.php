@@ -42,4 +42,7 @@ class Relation extends GenericModel
     public function user(){
         return $this->belongsTo('App\Models\User');
     }
+    public function user_opinion(){
+        return $this->hasOne('App\Models\Opinion', 'relation_id')->where('user_id', $this->userSession('id'));
+    }
 }

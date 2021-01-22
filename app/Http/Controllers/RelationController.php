@@ -29,6 +29,15 @@ class RelationController extends GenericController
             ]
           ]
         ],
+        'user_opinion' => [
+          "true_table" => 'opinions',
+          "is_child" => true, 
+          'foreign_tables' => [
+            'opinion_calculated_column' => [
+              "is_child" => true,
+            ]
+          ]
+        ],
         'user_relation_bookmarks' => [],
         'relations' => $this->generateRecursiveRelationForeignTable(1), // sub relations
         'statement' => [
@@ -102,6 +111,15 @@ class RelationController extends GenericController
         ],
         "user_relation_context_locks" => [
           'validation_required' => false,
+        ],
+        'user_opinion' => [
+          "true_table" => 'opinions',
+          "is_child" => true, 
+          'foreign_tables' => [
+            'opinion_calculated_column' => [
+              "is_child" => true,
+            ]
+          ]
         ]
       ]
     ];

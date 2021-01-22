@@ -83,7 +83,8 @@ $apiResource = [
   'relation',
   'user-relation-bookmark',
   'user-relation-context-lock',
-  'notification-user'
+  'notification-user',
+  'opinion',
 ];
 $customAPIResources = [
   'user/request-change-password',

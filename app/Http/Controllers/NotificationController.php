@@ -48,5 +48,5 @@ class NotificationController extends GenericController
             return $queryModel;
         };
         $this->initGenericController();
-      }
+    }
 }

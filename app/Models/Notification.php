@@ -10,7 +10,6 @@ class Notification extends GenericModel
 {
     use HasFactory;
     public function createNotification(){
-
     }
     public function createSubRelationUpdateNotification($subRelationId, $userId, $userRelations, $message){
         $this->type = 4;
@@ -38,7 +37,6 @@ class Notification extends GenericModel
         $notificationSubRelationUpdateUserRelationModel = new NotificationSubRelationUpdateUserRelation();
         $notificationSubRelationUpdateUserRelationModel->insert($userRelations);
         (new NotificationUser())->insert($notificationUsers);
-
     }
     public function createRelationUpdateNotification($relationId, $userId, $message){
         $this->type = 2;
