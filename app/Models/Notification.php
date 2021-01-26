@@ -22,10 +22,10 @@ class Notification extends GenericModel
         $notifcationSubRelationUpdateModel->sub_relation_id = $subRelationId;
         $notifcationSubRelationUpdateModel->message = $message;
         $notifcationSubRelationUpdateModel->save();
-        $notifcationRelationUpdateModelId = $notifcationSubRelationUpdateModel->id;
+        $notificationRelationUpdateModelId = $notifcationSubRelationUpdateModel->id;
         $notificationUsers = [];
         foreach($userRelations as $key => $userRelation){
-            $userRelations[$key]['notification_sub_relation_update_id'] = $notifcationRelationUpdateModelId;
+            $userRelations[$key]['notification_sub_relation_update_id'] = $notificationRelationUpdateModelId;
             $notificationUsers[] = [
                 'notification_id' => $notificationId,
                 'user_id' => $userRelation['user_id'],
@@ -38,28 +38,42 @@ class Notification extends GenericModel
         $notificationSubRelationUpdateUserRelationModel->insert($userRelations);
         (new NotificationUser())->insert($notificationUsers);
     }
-    public function createRelationUpdateNotification($relationId, $userId, $message){
+    public function createRelationUpdateNotification($relationId, $userId, $message, $type = null){ // user id of the user who made the update
         $this->type = 2;
         $this->save();
         $notificationId = $this->id;
         $createdAt = $this->created_at;
-        $notifcationRelationUpdateModel = new NotificationRelationUpdate();
-        $notifcationRelationUpdateModel->notification_id = $notificationId;
-        $notifcationRelationUpdateModel->relation_id = $relationId;
-        $notifcationRelationUpdateModel->user_id = $userId;
-        $notifcationRelationUpdateModel->message = $message;
-        $notifcationRelationUpdateModel->save();
-        // retrieve bookmarks
-        $bookmarks = (new UserRelationBookmark())->where('relation_id', $relationId)->orWhere('sub_relation_id', $relationId)->whereNotIn('user_id', [$userId])->get()->toArray();
+        $notificationRelationUpdateModel = new NotificationRelationUpdate();
+        $notificationRelationUpdateModel->notification_id = $notificationId;
+        $notificationRelationUpdateModel->relation_id = $relationId;
+        $notificationRelationUpdateModel->user_id = $userId;
+        $notificationRelationUpdateModel->message = $message;
+        $notificationRelationUpdateModel->type = $type; // null is default, 2 - opinion
+        $notificationRelationUpdateModel->save();
         $notificationUsers = [];
-        for($x = 0; $x < count($bookmarks); $x++){
+        $relation = (new Relation())->find($relationId);
+        if($userId != $relation['user_id']){
             $notificationUsers[] = [
                 'notification_id' => $notificationId,
-                'user_id' => $bookmarks[$x]['user_id'],
+                'user_id' => $relation['user_id'],
                 'status' => 0,
                 'created_at' => $createdAt,
                 'updated_at' => $createdAt,
             ];
+        }
+        // retrieve bookmarks
+        $bookmarks = (new UserRelationBookmark())->where('relation_id', $relationId)->orWhere('sub_relation_id', $relationId)->whereNotIn('user_id', [$userId])->get()->toArray();
+        
+        for($x = 0; $x < count($bookmarks); $x++){
+            if($bookmarks[$x]['user_id'] != $userId){
+                $notificationUsers[] = [
+                    'notification_id' => $notificationId,
+                    'user_id' => $bookmarks[$x]['user_id'],
+                    'status' => 0,
+                    'created_at' => $createdAt,
+                    'updated_at' => $createdAt,
+                ];
+            }
         }
         $notificationUserModel = new NotificationUser();
         $notificationUserModel->insert($notificationUsers);

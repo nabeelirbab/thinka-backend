@@ -59,8 +59,8 @@ class TableStructure
   public function setColumnsDefault($tableStructure, $model){
     $tableStructure['columns'] = isset($tableStructure['columns']) ? $tableStructure['columns'] : [];
     $tableColumns = $model->getTableColumns();
-    $formulatedTableColumns = $model->getFormulatedColumn();
-    $tableValidationRule = $model->getValidationRule();
+    $formulatedTableColumns = method_exists($model, 'getFormulatedColumn') ? $model->getFormulatedColumn() : [];
+    $tableValidationRule = method_exists($model, 'getValidationRule') ? $model->getValidationRule() : [];
 
     for($x = 1; $x < 4; $x++){ // remove the created, updated, deleted ats columns
       if($tableColumns == 'created_at' || $tableColumns == 'updated_at' || $tableColumns == 'deleted_at')

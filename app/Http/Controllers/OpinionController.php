@@ -55,15 +55,24 @@ class OpinionController extends GenericController
             $resultObject['success'] = $genericCreate->create($entry);
             if($resultObject['success']){
                 $oldOpinions = (new App\Models\Opinion())
+                    ->with('opinion_calculated_column')
                     ->where('user_id', $this->userSession('id'))
                     ->where('relation_id', $entry['relation_id'])
                     ->get();
                 $this->responseGenerator->adddebug('id', $oldOpinions->toArray());
+                $isChangeOpinion = false;
                 foreach($oldOpinions as $opinion){
                     if($opinion->id != $resultObject['success']['id']){
                         $opinion->delete();
+                        $isChangeOpinion = true;
+                    }else{
+                        $resultObject['success']['opinion_calculated_column'] = $opinion['opinion_calculated_column'];
                     }
                 }
+                $resultObject['success']['confidence'] = $entry['confidence'];
+                $resultObject['success']['type'] = $entry['type'];
+                $notificationMessage = json_encode($resultObject['success']);
+                (new App\Models\Notification())->createRelationUpdateNotification($entry['relation_id'], $this->userSession('id'), $notificationMessage, 2);
             }
         }else{
           $resultObject['fail'] = [

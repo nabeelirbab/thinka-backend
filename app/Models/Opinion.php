@@ -15,6 +15,6 @@ class Opinion extends GenericModel
     ];
     protected $validationRuleNotRequired = ['user_id', 'confidence'];
     public function opinion_calculated_column(){
-        return $this->hasOne('App\Models\OpinionCalculatedColumn');
+        return $this->hasOne('App\Models\OpinionCalculatedColumn', 'id');
     }
 }
