@@ -45,4 +45,7 @@ class Relation extends GenericModel
     public function user_opinion(){
         return $this->hasOne('App\Models\Opinion', 'relation_id')->where('user_id', $this->userSession('id'));
     }
+    public function virtual_relation(){
+        return $this->hasOne('App\Models\Relation', 'virtual_relation_id');
+    }
 }

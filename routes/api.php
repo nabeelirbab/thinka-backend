@@ -99,6 +99,7 @@ $customAPIResources = [
   'relation/delete-clip',
   'relation/my-list',
   'relation/join',
+  'relation/link',
   'notification-user/change-status'
 ];
 $api_resource($apiResource);

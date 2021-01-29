@@ -59,6 +59,20 @@ class RelationController extends GenericController
               "is_child" => false,
             ]
           ]
+        ],
+        "virtual_relation" => [
+          'validation_required' => false,
+          "is_child" => true,
+          "true_table" => 'relations',
+          'foreign_tables' => [
+            'statement' => [
+              "is_child" => false,
+              "validation_required" => false,
+              'foreign_tables' => [
+                'statement_type' => []
+              ]
+            ],
+          ]
         ]
       ]
     ];
@@ -259,6 +273,44 @@ class RelationController extends GenericController
         $this->responseGenerator->setFail([
           "code" => 2,
           "message" => 'Not owner'
+        ]);
+      }
+    }
+    return $this->responseGenerator->generate();
+  }
+  public function link(Request $request){
+    $validator = Validator::make($request->all(), [
+      'parent_relation_id' => 'required|exists:relations,id',
+      'virtual_relation_id' => 'required|exists:relations,id',
+      'relevance_window' => 'required',
+      'relation_type_id' => 'required',
+      'logic_tree_id' => 'required|exists:logic_trees,id',
+    ]);
+    if($validator->fails()){
+      $this->responseGenerator->setFail([
+        "code" => 1,
+        "message" => $validator->errors()->toArray()
+      ]);
+    }else{
+      $entry = $request->all();
+      $virtualRelationModel = (new App\Models\Relation())->find($entry['virtual_relation_id']);
+      $parentRelationModel = (new App\Models\Relation())->find($entry['parent_relation_id']);
+      if($virtualRelationModel->published_at){
+        $relationModel = (new App\Models\Relation());
+        $relationModel->virtual_relation_id = $entry['virtual_relation_id'];
+        $relationModel->parent_relation_id = $entry['parent_relation_id'];
+        $relationModel->relevance_window = $entry['relevance_window'];
+        $relationModel->relation_type_id = $entry['relation_type_id'];
+        $relationModel->logic_tree_id = $entry['logic_tree_id'];
+        $relationModel->user_id = $this->userSession('id');
+        $relationModel->save();
+        $this->responseGenerator->setSuccess([
+          'id' => $relationModel->id,
+        ]);
+      }else{
+        $this->responseGenerator->setFail([
+          "code" => 2,
+          "message" => 'Cannot link unpublished relations'
         ]);
       }
     }
