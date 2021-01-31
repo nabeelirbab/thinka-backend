@@ -12,7 +12,7 @@ class Statement extends GenericModel
     public $validationRules = [
         'text' => 'required_without_all:id'
     ];
-    protected $validationRuleNotRequired = ['user_id', 'scope_id', 'statement_certainty_id', 'scope', 'statement_certainty', 'synopsis', 'context', 'published_at'];
+    protected $validationRuleNotRequired = ['user_id', 'scope_id', 'statement_certainty_id', 'scope', 'statement_certainty', 'synopsis', 'context_id', 'published_at'];
     public function logic_tree(){
         return $this->hasOne('App\Models\LogicTree');
     }

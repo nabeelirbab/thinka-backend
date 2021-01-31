@@ -18,5 +18,6 @@ class DatabaseSeeder extends Seeder
         $this->call(DefaultServiceSeeder::class);
         $this->call(PredefinedRoleSeeder::class);
         $this->call(UserSeeder::class);
+        $this->call(PredefinedContext::class);
     }
 }

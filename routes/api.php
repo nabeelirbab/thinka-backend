@@ -85,6 +85,7 @@ $apiResource = [
   'user-relation-context-lock',
   'notification-user',
   'opinion',
+  'context',
 ];
 $customAPIResources = [
   'user/request-change-password',

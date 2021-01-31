@@ -150,14 +150,18 @@ class StatementController extends GenericController
         $notificationMessage = '';
         unset($entry['relation']);
         $statementModel = (new App\Models\Statement())->find($entry['id']);
-        if(isset($entry['id']) && !isset($entry['old_statement_id'])){ // if old_statement_id exists, then the user choose a statement from suggestion
-          if($statementModel->text !== $entry['text']){
+        if(isset($entry['id']) && !isset($entry['old_statement_id'])){ // if user did not select from suggestion. If old_statement_id exists it means the user choose a statement from suggestion
+          if($statementModel->text !== $entry['text']){ // update statement text
             $notificationMessage = "Updated Statement from " . $statementModel->text.". ";
             $statementModel->text = strip_tags($entry['text']);
           }
           if($statementModel->statement_type_id !== $entry['statement_type_id']){
             $notificationMessage = $notificationMessage . "Changed statement type.";
             $statementModel->statement_type_id = $entry['statement_type_id'];
+          }
+          if($statementModel->context_id !== $entry['context_id']){
+            $notificationMessage = $notificationMessage . "Changed the context.";
+            $statementModel->context_id = $entry['context_id'];
           }
           $statementModel->save();
           $relation->statement_id = $statementModel->id;
