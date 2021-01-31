@@ -13,8 +13,31 @@ use App\Generic\Core\GenericRetrieve as GenericRetrieve;
 
 class RelationController extends GenericController
 {
+  private $preFormattedSelect = [
+    'statement' => [
+      'select' => ['id', 'text', 'synopsis', 'comment', 'scope', 'scope_id', 'statement_type_id']
+    ],
+    'user' => [
+      'select' => [
+        'id', 'username',
+        'user_basic_information' => [
+          'select' => ['user_id', 'first_name', 'last_name']
+        ]
+      ]
+    ],
+    'user_opinion' => [
+      'select' => [
+        'opinion_calculated_column' => [  
+          'select' => ['id', 'score_relation', 'score_statement']
+        ],
+        'id', 'user_id', 'relation_id', 'confidence', 'type'
+      ]
+    ],
+    'parent_relation_id', 'logic_tree_id', 'statement_id', 'relation_type_id', 'relevance_window', 'user_id', 'published_at', 'logic_tree_id', 'impact', 'impact_amount', 'created_at', 'virtual_relation_id'
+  ];
   function __construct(){
     $this->model = new App\Models\Relation();
+    $recursiveRelationForeignTable = $this->generateRecursiveRelationForeignTable(1);
     $this->tableStructure = [
       'columns' => [
       ],
@@ -39,7 +62,7 @@ class RelationController extends GenericController
           ]
         ],
         'user_relation_bookmarks' => [],
-        'relations' => $this->generateRecursiveRelationForeignTable(1), // sub relations
+        'relations' => $recursiveRelationForeignTable, // sub relations
         'statement' => [
           "is_child" => false,
           "validation_required" => false,
@@ -61,10 +84,11 @@ class RelationController extends GenericController
           ]
         ],
         "virtual_relation" => [
+          "is_child" => false,
           'validation_required' => false,
-          "is_child" => true,
           "true_table" => 'relations',
           'foreign_tables' => [
+            'relations' => $recursiveRelationForeignTable, // sub relations
             'statement' => [
               "is_child" => false,
               "validation_required" => false,
@@ -85,8 +109,102 @@ class RelationController extends GenericController
     };
     $this->initGenericController();
   }
+  public function retrieveTree(Request $request){
+    $requestArray = $request->all();
+    $validator = Validator::make($requestArray, [
+      "relation_id" => "required|exists:relations,id"
+    ]);
+    if($validator->fails()){
+      $this->responseGenerator->setFail([
+        "code" => 1,
+        "message" => $validator->errors()->toArray()
+      ]);
+      return $this->responseGenerator->generate();
+    }
+    $relationId = $requestArray['relation_id'];
+    $userId = $this->userSession('id');
+    $relationModel = (new App\Models\Relation())->find($relationId);
+    if($relationModel->published_at !== null || $relationModel->user_id === $userId * 1){
+      $relation = $this->recursiveRetrieveTree([$relationId]);
+      $this->responseGenerator->setSuccess($relation);
+      return $this->responseGenerator->generate();
+    }else{
+      $this->responseGenerator->setFail([
+        "code" => 2,
+        "message" => 'Statement is not published'
+      ]);
+      return $this->responseGenerator->generate();
+    }
+  }
+  public function recursiveRetrieveTree($relationIds, $currentDeep = 0, $deep = 20){ // if deep is 0, relationsIds containes the parent relation ids
+    if(count($relationIds) == 0){
+      return [];
+    }
+    $with = [
+      'user_relation_bookmarks',
+      'statement',
+      'user',
+      'user.user_basic_information',
+      'user_opinion',
+      'user_opinion.opinion_calculated_column',
+    ];
+    $relationModel = (new App\Models\Relation());
+    if($currentDeep == 0){
+      $with = array_merge($with, [
+        'logic_tree',
+        'parent_relation',
+        'parent_relation.statement',
+      ]);
+      $relationModel = $relationModel->where('id', $relationIds);
+    }else{
+      $relationModel = $relationModel->where(function($query){
+        $query->where('published_at', '!=', NULL);
+        $query->orWhere('user_id', $this->userSession('id'));
+      });
+      $relationModel = $relationModel->whereIn('parent_relation_id', $relationIds);
+    }
+    $relationModel = $relationModel->with($with);
+    $relations = $relationModel->get()->toArray();
+    if($currentDeep < $deep){
+      ++$currentDeep;
+      $relationIdLookUp = [];
+      $relationIdList = [];
+      $virtualRelationParentRelationLookUp = []; // container object where value is array of relation index where virtual_relation belongs
+      $virtualRelationIdList = [];
+      foreach($relations as $relationKey => $relation){
+        $relationIdList[] = $relation['id'] * 1;
+        $relationIdLookUp[$relation['id']] = $relationKey;
+        $relations[$relationKey]['relations'] = [];
+        $relations[$relationKey]['virtual_relation'] = null;
+        if($relation['virtual_relation_id'] != null){
+          
+          if(!isset($virtualRelationParentRelationLookUp[$relation['virtual_relation_id']])){
+            $virtualRelationParentRelationLookUp[$relation['virtual_relation_id']] = [];
+          }
+          $virtualRelationIdList[] = $relation['virtual_relation_id'] * 1;
+          $virtualRelationParentRelationLookUp[$relation['virtual_relation_id']][] = $relationKey;
+        }
+      }
+      $virtualRelations = $this->recursiveRetrieveTree($virtualRelationIdList, 0, $deep - $currentDeep);
+      // $this->responseGenerator->addDebug('virtualRelationIdLista'.$relationIds[0], $virtualRelationIdList);
+      // $this->responseGenerator->addDebug('virtualRelationIdListb virtualRelations'.$relationIds[0], $virtualRelations);
+      foreach($virtualRelations as $virtualRelation){
+        foreach($virtualRelationParentRelationLookUp[$virtualRelation['id']] as $relationIndex){
+          // $this->responseGenerator->addDebug('virtualRelationParentRelationLookUp'.$relationIds[0] . '===='. $virtualRelation['id'], $virtualRelationParentRelationLookUp);
+          // $this->responseGenerator->addDebug('relationIndices'.$relationIds[0] . '===='. $virtualRelation['id'], $relationIndices);
+          // $this->responseGenerator->addDebug('virtualRelationParentRelationLookUp accessed'.$relationIds[0] . '===='. $virtualRelation['id'], $virtualRelationParentRelationLookUp[$virtualRelation['id']]);
+          $relations[$relationIndex]['virtual_relation'] = $virtualRelation;
+        }
+      }
+      $subRelations = $this->recursiveRetrieveTree($relationIdList, $currentDeep);
+      foreach($subRelations as $subRelation){
+        $parentRelationIndex = $relationIdLookUp[$subRelation['parent_relation_id']];
+        $relations[$parentRelationIndex]['relations'][] = $subRelation;
+      }
+    }
+    return $relations;
+  }
   public function retrieve(Request $request){
-    // printR($request->all());
     $requestArray = $this->systemGenerateRetrieveParameter($request->all());
     $validator = Validator::make($requestArray, ["select" => "required|array|min:1"]);
     if($validator->fails()){
@@ -133,6 +251,20 @@ class RelationController extends GenericController
             'opinion_calculated_column' => [
               "is_child" => true,
             ]
+          ]
+        ],
+        "virtual_relation" => [
+          "is_child" => false,
+          'validation_required' => false,
+          "true_table" => 'relations',
+          'foreign_tables' => [
+            'statement' => [
+              "is_child" => false,
+              "validation_required" => false,
+              'foreign_tables' => [
+                'statement_type' => []
+              ]
+            ],
           ]
         ]
       ]
