@@ -147,22 +147,25 @@ class RelationController extends GenericController
       'user.user_basic_information',
       'user_opinion',
       'user_opinion.opinion_calculated_column',
+      'user_relation_context_locks' => function($query){
+        $query->where('user_id', $this->userSession('id'));
+      }
     ];
     $relationModel = (new App\Models\Relation());
-    if($currentDeep == 0){
+    if($currentDeep == 0){ // main relation
       $with = array_merge($with, [
         'logic_tree',
         'parent_relation',
         'parent_relation.statement',
       ]);
-      $relationModel = $relationModel->where('id', $relationIds);
+      $relationModel = $relationModel->whereIn('id', $relationIds);
     }else{
-      $relationModel = $relationModel->where(function($query){
-        $query->where('published_at', '!=', NULL);
-        $query->orWhere('user_id', $this->userSession('id'));
-      });
       $relationModel = $relationModel->whereIn('parent_relation_id', $relationIds);
     }
+    $relationModel = $relationModel->where(function($query){
+      $query->where('published_at', '!=', NULL);
+      $query->orWhere('user_id', $this->userSession('id'));
+    });
     $relationModel = $relationModel->with($with);
     $relations = $relationModel->get()->toArray();
     if($currentDeep < $deep){
@@ -177,7 +180,6 @@ class RelationController extends GenericController
         $relations[$relationKey]['relations'] = [];
         $relations[$relationKey]['virtual_relation'] = null;
         if($relation['virtual_relation_id'] != null){
-          
           if(!isset($virtualRelationParentRelationLookUp[$relation['virtual_relation_id']])){
             $virtualRelationParentRelationLookUp[$relation['virtual_relation_id']] = [];
           }
@@ -186,8 +188,8 @@ class RelationController extends GenericController
         }
       }
       $virtualRelations = $this->recursiveRetrieveTree($virtualRelationIdList, 0, $deep - $currentDeep);
-      // $this->responseGenerator->addDebug('virtualRelationIdLista'.$relationIds[0], $virtualRelationIdList);
-      // $this->responseGenerator->addDebug('virtualRelationIdListb virtualRelations'.$relationIds[0], $virtualRelations);
+      $this->responseGenerator->addDebug('virtualRelationIdList' . $relationIds[0], $virtualRelationIdList);
+      $this->responseGenerator->addDebug('virtualRelations' . $relationIds[0], $virtualRelations);
       foreach($virtualRelations as $virtualRelation){
         foreach($virtualRelationParentRelationLookUp[$virtualRelation['id']] as $relationIndex){
           // $this->responseGenerator->addDebug('virtualRelationParentRelationLookUp'.$relationIds[0] . '===='. $virtualRelation['id'], $virtualRelationParentRelationLookUp);
@@ -376,6 +378,8 @@ class RelationController extends GenericController
     $validator = Validator::make($request->all(), [
       'parent_relation_id' => 'required|exists:relations,id',
       'relation_id' => 'required|exists:relations,id',
+      'relation_type_id' => 'required|exists:relation_types,id',
+      'impact_amount' => 'required',
     ]);
     if($validator->fails()){
       $this->responseGenerator->setFail([
@@ -394,6 +398,9 @@ class RelationController extends GenericController
       }else if($relationModel->user_id === $this->userSession('id')){
         $relationModel->parent_relation_id = $entry['parent_relation_id'];
         $relationModel->relevance_window = $entry['relevance_window'];
+        $relationModel->relation_type_id = $entry['relation_type_id'];
+        $relationModel->impact_amount = $entry['impact_amount'];
+        $relationModel->published_at = time();
         $relationModel->save();
         $subRelations = $this->recursiveUpdate($entry['relation_id'], $parentRelationModel->logic_tree_id);
         $logicTreeId = (new App\Models\LogicTree())->find($relationModel->logic_tree_id);
@@ -415,8 +422,10 @@ class RelationController extends GenericController
       'parent_relation_id' => 'required|exists:relations,id',
       'virtual_relation_id' => 'required|exists:relations,id',
       'relevance_window' => 'required',
-      'relation_type_id' => 'required',
+      'relation_type_id' => 'required|exists:relation_types,id',
+      'impact_amount' => 'required',
       'logic_tree_id' => 'required|exists:logic_trees,id',
+      'is_published' => 'required',
     ]);
     if($validator->fails()){
       $this->responseGenerator->setFail([
@@ -433,7 +442,9 @@ class RelationController extends GenericController
         $relationModel->parent_relation_id = $entry['parent_relation_id'];
         $relationModel->relevance_window = $entry['relevance_window'];
         $relationModel->relation_type_id = $entry['relation_type_id'];
+        $relationModel->impact_amount = $entry['impact_amount'];
         $relationModel->logic_tree_id = $entry['logic_tree_id'];
+        $relationModel->published_at = isset($entry['is_published']) && $entry['is_published'] ? date('Y-m-d H:i:s') : null;
         $relationModel->user_id = $this->userSession('id');
         $relationModel->save();
         $this->responseGenerator->setSuccess([
