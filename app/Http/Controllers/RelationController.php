@@ -192,9 +192,6 @@ class RelationController extends GenericController
       $this->responseGenerator->addDebug('virtualRelations' . $relationIds[0], $virtualRelations);
       foreach($virtualRelations as $virtualRelation){
         foreach($virtualRelationParentRelationLookUp[$virtualRelation['id']] as $relationIndex){
-          // $this->responseGenerator->addDebug('virtualRelationParentRelationLookUp'.$relationIds[0] . '===='. $virtualRelation['id'], $virtualRelationParentRelationLookUp);
-          // $this->responseGenerator->addDebug('relationIndices'.$relationIds[0] . '===='. $virtualRelation['id'], $relationIndices);
-          // $this->responseGenerator->addDebug('virtualRelationParentRelationLookUp accessed'.$relationIds[0] . '===='. $virtualRelation['id'], $virtualRelationParentRelationLookUp[$virtualRelation['id']]);
           $relations[$relationIndex]['virtual_relation'] = $virtualRelation;
         }
       }
@@ -400,7 +397,7 @@ class RelationController extends GenericController
         $relationModel->relevance_window = $entry['relevance_window'];
         $relationModel->relation_type_id = $entry['relation_type_id'];
         $relationModel->impact_amount = $entry['impact_amount'];
-        $relationModel->published_at = time();
+        $relationModel->published_at = date('Y-m-d H:i:s');
         $relationModel->save();
         $subRelations = $this->recursiveUpdate($entry['relation_id'], $parentRelationModel->logic_tree_id);
         $logicTreeId = (new App\Models\LogicTree())->find($relationModel->logic_tree_id);
