@@ -27,7 +27,7 @@ class RelationController extends GenericController
     ],
     'user_opinion' => [
       'select' => [
-        'opinion_calculated_column' => [  
+        'opinion_calculated_column' => [
           'select' => ['id', 'score_relation', 'score_statement']
         ],
         'id', 'user_id', 'relation_id', 'confidence', 'type'
@@ -124,13 +124,13 @@ class RelationController extends GenericController
     $relationId = $requestArray['relation_id'];
     $userId = $this->userSession('id');
     $relationModel = (new App\Models\Relation())->find($relationId);
-    if($relationModel->published_at !== null || $relationModel->user_id === $userId * 1){
+    if($relationModel->published_at !== null || $relationModel->user_id * 1 === $userId * 1){
       $relation = $this->recursiveRetrieveTree([$relationId]);
       $this->responseGenerator->setSuccess($relation);
       return $this->responseGenerator->generate();
     }else{
       $this->responseGenerator->setFail([
-        "code" => 2,
+        "code" => 1,
         "message" => 'Statement is not published'
       ]);
       return $this->responseGenerator->generate();

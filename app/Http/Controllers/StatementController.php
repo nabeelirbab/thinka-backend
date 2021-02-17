@@ -50,7 +50,8 @@ class StatementController extends GenericController
     ];
     if(isset($entry['text']) && (!isset($entry['id']) || !$entry['id'])){ // check if statement already exists
       $statements = (new App\Models\Statement())
-        ->where(DB::raw("REGEXP_REPLACE(text, '[^a-z0-9]', '')"), "like", DB::raw("REGEXP_REPLACE('" . $entry['text'] . "', '[^a-z0-9]', '')") )
+        // ->where(DB::raw("REGEXP_REPLACE(text, '[^a-z0-9]', '')"), "like", DB::raw("REGEXP_REPLACE('" . $entry['text'] . "', '[^a-z0-9]', '')") )
+        ->where('text', "like", '%' . $entry['text'] . '%')
         ->get()->toArray();
       if(count($statements)){ // statement already existed
         

@@ -46,29 +46,42 @@ class Notification extends GenericModel
         $notificationRelationUpdateModel = new NotificationRelationUpdate();
         $notificationRelationUpdateModel->notification_id = $notificationId;
         $notificationRelationUpdateModel->relation_id = $relationId;
-        $notificationRelationUpdateModel->user_id = $userId;
+        $notificationRelationUpdateModel->user_id = $this->userSession('id'); // the user who made the changes
         $notificationRelationUpdateModel->message = $message;
         $notificationRelationUpdateModel->type = $type; // null is default, 2 - opinion
         $notificationRelationUpdateModel->save();
         $notificationUsers = [];
-        $relation = (new Relation())->find($relationId);
-        if($userId != $relation['user_id']){
-            $notificationUsers[] = [
-                'notification_id' => $notificationId,
-                'user_id' => $relation['user_id'],
-                'status' => 0,
-                'created_at' => $createdAt,
-                'updated_at' => $createdAt,
-            ];
-        }
-        // retrieve bookmarks
-        $bookmarks = (new UserRelationBookmark())->where('relation_id', $relationId)->orWhere('sub_relation_id', $relationId)->whereNotIn('user_id', [$userId])->get()->toArray();
-        
-        for($x = 0; $x < count($bookmarks); $x++){
-            if($bookmarks[$x]['user_id'] != $userId){
+        if(gettype($userId) !== 'array'){
+            $relation = (new Relation())->find($relationId);
+            if($userId != $relation['user_id']){
                 $notificationUsers[] = [
                     'notification_id' => $notificationId,
-                    'user_id' => $bookmarks[$x]['user_id'],
+                    'user_id' => $relation['user_id'],
+                    'status' => 0,
+                    'created_at' => $createdAt,
+                    'updated_at' => $createdAt,
+                ];
+            }
+            // retrieve bookmarks
+            $bookmarks = (new UserRelationBookmark())->where('relation_id', $relationId)->orWhere('sub_relation_id', $relationId)->whereNotIn('user_id', [$userId])->get()->toArray();
+            for($x = 0; $x < count($bookmarks); $x++){
+                if($bookmarks[$x]['user_id'] != $userId){
+                    $notificationUsers[] = [
+                        'notification_id' => $notificationId,
+                        'user_id' => $bookmarks[$x]['user_id'],
+                        'status' => 0,
+                        'created_at' => $createdAt,
+                        'updated_at' => $createdAt,
+                    ];
+                }
+            }
+        }else{
+            $usersToNotify = $userId;
+            foreach($usersToNotify as $userIdKey => $reason){
+                $notificationUsers[] = [
+                    'notification_id' => $notificationId,
+                    'user_id' => $userIdKey,
+                    'extra_data' => json_encode($reason),
                     'status' => 0,
                     'created_at' => $createdAt,
                     'updated_at' => $createdAt,

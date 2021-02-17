@@ -76,10 +76,11 @@ class AuthController extends Controller
      */
     public function refresh(Request $request)
     {
-        // $this->currentToken = auth()->refresh();
-        // return $this->respondWithToken($this->currentToken);
+        $newToken = auth()->refresh(true);
+        return response()->json([
+            'token' => $newToken,
+        ]);
     }
-
     /**
      * Get the token array structure.
      *
@@ -92,7 +93,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60, // mintues to seconds
+            'expires_in' => auth()->factory()->getTTL(), // mintues to seconds
             'user' => array_merge(auth()->user()->toArray(), get_object_vars(auth()->getPayload()->get('custom')))
             // 'payoad' => auth()->getPayload(),
         ])->header('Authorization', 'Bearer ' . $this->currentToken);;

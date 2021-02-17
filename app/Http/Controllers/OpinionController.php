@@ -7,6 +7,7 @@ use App\Generic\Core\GenericFormValidation;
 use App\Generic\Core\GenericCreate;
 use App\Generic\GenericController;
 use App;
+use App\Http\Controllers\Relation\NotificationBuilder as NotificationBuilder;
 
 class OpinionController extends GenericController
 {
@@ -23,7 +24,7 @@ class OpinionController extends GenericController
             //         "user" => [
             //             'validation_required' => false,
             //                 'foreign_tables' => [
-            //                     "user_basic_information" => [
+            //                     "user_basic_information" => 
             //                     'validation_required' => false,
             //                     "is_child" => false,
             //                 ]
@@ -72,7 +73,13 @@ class OpinionController extends GenericController
                 $resultObject['success']['confidence'] = $entry['confidence'];
                 $resultObject['success']['type'] = $entry['type'];
                 $notificationMessage = json_encode($resultObject['success']);
-                (new App\Models\Notification())->createRelationUpdateNotification($entry['relation_id'], $this->userSession('id'), $notificationMessage, 2);
+                $notificationBuilder = new NotificationBuilder();
+                $notificationBuilder->getUserToNotifyFromParentRelation($entry['relation_id']);
+                $usersToNotify = $notificationBuilder->withNotificationUserExtraData(); // convert the value of each array element with extra data
+                unset($usersToNotify[$this->userSession('id')]);
+                $this->responseGenerator->adddebug('user_id', $this->userSession('id'));
+                $this->responseGenerator->adddebug('users_notify', $usersToNotify);
+                (new App\Models\Notification())->createRelationUpdateNotification($entry['relation_id'], $usersToNotify, $notificationMessage, 2);
             }
         }else{
           $resultObject['fail'] = [
