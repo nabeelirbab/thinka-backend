@@ -126,6 +126,17 @@ class RelationController extends GenericController
     $relationModel = (new App\Models\Relation())->find($relationId);
     if($relationModel->published_at !== null || $relationModel->user_id * 1 === $userId * 1){
       $relation = $this->recursiveRetrieveTree([$relationId]);
+      $parentRelationUserFollowings = $relation[0]['parent_relation_id'] ? $this->getParentRelationUserFollowing($relation[0]['parent_relation_id']) : [];
+      $relation[0]['parent_relation_user_following'] = [];
+      if(count($parentRelationUserFollowings)){
+        $userIdList = [];
+        foreach($parentRelationUserFollowings as $userId => $value){
+          $userIdList[] = $userId;
+        }
+        
+        $relation[0]['parent_relation_user_following'] = (new App\Models\User())->with(['user_basic_information'])->whereIn('id', $userIdList)->get()->toArray();
+      }
+      $this->responseGenerator->addDebug('userIdList', $parentRelationUserFollowings);
       $this->responseGenerator->setSuccess($relation);
       return $this->responseGenerator->generate();
     }else{
@@ -134,6 +145,29 @@ class RelationController extends GenericController
         "message" => 'Statement is not published'
       ]);
       return $this->responseGenerator->generate();
+    }
+  }
+  private function getParentRelationUserFollowing($relationId){
+    if($relationId){
+      $relation = (new App\Models\Relation())->find($relationId)->with('all_user_relation_bookmarks')->get()->toArray();
+      if(count($relation)){
+        $relation = $relation[0];
+        $users = [];
+        $users[$relation['user_id']] = true;
+        foreach($relation['all_user_relation_bookmarks'] as $userRelationBookmark){
+          $users[$userRelationBookmark['user_id']] = true;
+        }
+        $parentRelationUserFollowing = [];
+        if($relation['parent_relation_id']){
+          $parentRelationUserFollowing = $this->getParentRelationUserFollowing($relation['parent_relation_id']);
+        }
+        foreach($parentRelationUserFollowing as $userIdKey => $value){
+          $users[$userIdKey] = $value;
+        }
+        return $users; // array_merge($users, $parentRelationUserFollowing);
+      }
+    }else{
+      return [];
     }
   }
   public function recursiveRetrieveTree($relationIds, $currentDeep = 0, $deep = 20){ // if deep is 0, relationsIds containes the parent relation ids
@@ -147,12 +181,13 @@ class RelationController extends GenericController
       'user.user_basic_information',
       'user_opinion',
       'user_opinion.opinion_calculated_column',
+      'all_user_relation_bookmarks',
       'user_relation_context_locks' => function($query){
         $query->where('user_id', $this->userSession('id'));
       }
     ];
     $relationModel = (new App\Models\Relation());
-    if($currentDeep == 0){ // main relation
+    if($currentDeep == 0){ // main relation if the current deep is zero
       $with = array_merge($with, [
         'logic_tree',
         'parent_relation',
