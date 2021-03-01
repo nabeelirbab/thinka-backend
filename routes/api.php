@@ -102,7 +102,8 @@ $customAPIResources = [
   'relation/my-list',
   'relation/join',
   'relation/link',
-  'notification-user/change-status'
+  'notification-user/change-status',
+  'opinion/change-impact'
 ];
 $api_resource($apiResource);
 $custom_api($customAPIResources);

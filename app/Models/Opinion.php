@@ -13,7 +13,7 @@ class Opinion extends GenericModel
         "relation_id" => "required|exists:relations,id",
         "type" => "in:0,1,2,3"
     ];
-    protected $validationRuleNotRequired = ['user_id', 'confidence'];
+    protected $validationRuleNotRequired = ['user_id', 'type', 'confidence', 'residual_risk', 'risk_plan_cost', 'impact_amount', 'impact'];
     public function opinion_calculated_column(){
         return $this->hasOne('App\Models\OpinionCalculatedColumn', 'id');
     }

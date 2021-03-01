@@ -181,6 +181,8 @@ class RelationController extends GenericController
       'user.user_basic_information',
       'user_opinion',
       'user_opinion.opinion_calculated_column',
+      'user_opinions',
+      'user_opinions.opinion_calculated_column',
       'all_user_relation_bookmarks',
       'user_relation_context_locks' => function($query){
         $query->where('user_id', $this->userSession('id'));
