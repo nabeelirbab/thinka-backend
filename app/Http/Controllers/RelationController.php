@@ -97,7 +97,17 @@ class RelationController extends GenericController
               ]
             ],
           ]
-        ]
+        ],
+        'root_parent_relation' => [
+          "true_table" => 'relations',
+          "is_child" => false, 
+          "validation_required" => false,
+          'foreign_tables' => [
+            'statement' => [
+              "is_child" => false,
+            ]
+          ]
+        ],
       ]
     ];
     $this->retrieveCustomQueryModel = function($queryModel, &$leftJoinedTable){
@@ -657,16 +667,21 @@ class RelationController extends GenericController
   }
   public function myList(){
     // $result = DB::select(
-    //   'call statement_my_list( ? )', 
-    //   array('75')
+    //   DB::raw("SET @p0='" . $this->userSession('id') . "';")
     // );
-    $result = DB::select(
-      DB::raw("SET @p0='" . $this->userSession('id') . "';")
-    );
-    $result = DB::select(
-      DB::raw("call statement_my_list(@p0)")
-    );
-    $this->responseGenerator->setSuccess($result);
+    // $result = DB::select(
+    //   DB::raw("call statement_my_list(@p0)")
+    // );
+    $relations = (new Relation())
+      ->with([
+        'statement',
+        'root_parent_relation' => function($query){
+          return $query->where('root_parent_relation.logic_tree_id', 'relations.logic_tree_id');
+        }
+      ])
+      ->where('user_id',  $this->userSession('id'))
+      ->get()->toArray();
+    $this->responseGenerator->setSuccess($relations);
     return $this->responseGenerator->generate();
   }
 }
