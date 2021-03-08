@@ -36,6 +36,9 @@ class UserRelationBookmarkController extends GenericController
               "is_child" => true, 
               'validation_required' => false
             ],
+            'user' => [
+              'validation_required' => false
+            ],
           ]
         ]
       ]
