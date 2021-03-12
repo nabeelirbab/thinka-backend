@@ -70,10 +70,8 @@ class OpinionController extends GenericController
                     $opinion->delete();
                     $isChangeOpinion = true;
                 }
-                $newOpinion = (new App\Models\Opinion)->find($resultObject['success']['id']);
-                $resultObject['success']['opinion_calculated_column'] = $newOpinion['opinion_calculated_column'];
-                $resultObject['success']['confidence'] = $entry['confidence'];
-                $resultObject['success']['type'] = $entry['type'];
+                $newOpinion = (new App\Models\Opinion)->with('opinion_calculated_column')->find($resultObject['success']['id']);
+                $resultObject['success'] = $newOpinion;
                 $notificationMessage = json_encode($resultObject['success']);
                 $notificationBuilder = new NotificationBuilder();
                 $notificationBuilder->getUserToNotifyFromParentRelation($entry['relation_id']);
