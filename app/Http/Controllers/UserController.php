@@ -10,6 +10,7 @@ use App;
 use App\Generic\GenericController;
 use App\Generic\Core\GenericCreate;
 use App\Generic\Core\GenericFormValidation;
+use Mail;
 
 class UserController extends GenericController
 {
@@ -89,6 +90,13 @@ class UserController extends GenericController
       if($validation->isValid($requestData)){
           $genericCreate = new GenericCreate($this->tableStructure, $this->model);
           $resultObject['success'] = $genericCreate->create($requestData);
+          $data = ['user' => 'Test'];
+          Mail::send('welcome-email', $data, function($message) {
+            $message->to('plenosjohn@yahoo.com')
+            ->subject('Welcome to Thinka');
+            $message->from('noreply@thinka.io','Thinka');
+         });
+         
       }else{
         $resultObject['fail'] = [
           "code" => 1,
