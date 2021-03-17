@@ -91,14 +91,16 @@ class UserController extends GenericController
           $genericCreate = new GenericCreate($this->tableStructure, $this->model);
           $resultObject['success'] = $genericCreate->create($requestData);
           if(config('app.MAIL_MAILER') === 'smtp'){
+            $this->responseGenerator->addDebug('MAIL_MAILERPass', config('app.MAIL_MAILER'));
             $data = ['user' => 'Test'];
             Mail::send('welcome-email', $data, function($message) {
               $message->to('plenosjohn@yahoo.com')
               ->subject('Welcome to Thinka');
               $message->from('noreply@thinka.io','Thinka');
            });
+          }else{
+            $this->responseGenerator->addDebug('MAIL_MAILERFailed', config('app.MAIL_MAILER'));
           }
-         
       }else{
         $resultObject['fail'] = [
           "code" => 1,
