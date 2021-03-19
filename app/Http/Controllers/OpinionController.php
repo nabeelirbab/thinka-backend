@@ -55,12 +55,18 @@ class OpinionController extends GenericController
             ->where('relation_id', $entry['relation_id'])
             ->get();
             $entry['user_id'] = $this->userSession('id');
-            if(count($oldOpinions)){
-                $entry['impact_amount'] = $oldOpinions[0]['impact_amount'];
-            }
+            // if(count($oldOpinions)){
+            //     $entry['impact_amount'] = $oldOpinions[0]['impact_amount'];
+            // }
             $genericCreate = new GenericCreate($this->tableStructure, $this->model);
             if(!isset($entry['confidence'])){
                 $entry['confidence'] = $entry['type'] > 0 ? 1 : 0;
+            }
+            if(!isset($entry['type']) || $entry['type'] < 0){
+                $entry['type'] = 0;
+            }
+            if(isset($entry['impact_amount'])){
+                $entry['impact_amount'] = $entry['impact_amount'];
             }
             $resultObject['success'] = $genericCreate->create($entry);
             if($resultObject['success']){

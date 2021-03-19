@@ -378,7 +378,6 @@ class RelationController extends GenericController
         if($relationModel->parent_relation_id){
           $parentIds = $this->getParentIds($relationModel->id);
         }
-        $this->responseGenerator->addDebug('$parentIds'. $relationModel->parent_relation_id, $parentIds);
         $notificationMessage = $publishedAt ? 'A sub statement has been added or published in your bookmarked statement' : 'A statement has been unpublished in your bookmarked statement';
         foreach($relationToNotifyList as $relationToNotifyId => $relationToNotifyList){
           $toNotifyRelationArray = array_merge($parentIds, $relationToNotifyList['parents']);
