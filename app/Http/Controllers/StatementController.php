@@ -108,6 +108,7 @@ class StatementController extends GenericController
           // }
           $relationModel->save();
           $resultObject['success']['relation']['id'] = $relationModel->id;
+          $resultObject['success']['created_at'] = date('Y-m-d H:i:s');
         }
       }
     }else{
