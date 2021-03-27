@@ -49,7 +49,16 @@ class RelationController extends GenericController
           'foreign_tables' => [
             'statement' => [
               "is_child" => false,
-            ]
+            ],
+            "user" => [
+              'validation_required' => false,
+              'foreign_tables' => [
+                "user_basic_information" => [
+                  'validation_required' => false,
+                  "is_child" => false,
+                ]
+              ]
+            ],
           ]
         ],
         'user_opinion' => [
@@ -479,7 +488,7 @@ class RelationController extends GenericController
       $entry = $request->all();
       $virtualRelationModel = (new App\Models\Relation())->find($entry['virtual_relation_id']);
       $parentRelationModel = (new App\Models\Relation())->find($entry['parent_relation_id']);
-      if($virtualRelationModel->published_at){
+      if($virtualRelationModel->published_at || $virtualRelationModel->user_id == $this->userSession('id')){
         $relationModel = (new App\Models\Relation());
         $relationModel->virtual_relation_id = $entry['virtual_relation_id'];
         $relationModel->parent_relation_id = $entry['parent_relation_id'];
