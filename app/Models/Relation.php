@@ -52,7 +52,7 @@ class Relation extends GenericModel
         return $this->hasMany('App\Models\Opinion', 'relation_id'); // ->where('user_id', $this->userSession('id'));
     }
     public function virtual_relation(){
-        return $this->belongsTo('App\Models\Relation', 'parent_relation_id');
+        return $this->belongsTo('App\Models\Relation', 'virtual_relation_id');
     }
     
 }
