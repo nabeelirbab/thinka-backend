@@ -152,7 +152,6 @@ class RelationController extends GenericController
         foreach($parentRelationUserFollowings as $userId => $value){
           $userIdList[] = $userId;
         }
-        
         $relation[0]['parent_relation_user_following'] = (new App\Models\User())->with(['user_basic_information'])->whereIn('id', $userIdList)->get()->toArray();
       }
       $this->responseGenerator->addDebug('userIdList', $parentRelationUserFollowings);
@@ -244,8 +243,6 @@ class RelationController extends GenericController
         }
       }
       $virtualRelations = $this->recursiveRetrieveTree($virtualRelationIdList, 0, $deep - $currentDeep);
-      $this->responseGenerator->addDebug('virtualRelationIdList' . $relationIds[0], $virtualRelationIdList);
-      $this->responseGenerator->addDebug('virtualRelations' . $relationIds[0], $virtualRelations);
       foreach($virtualRelations as $virtualRelation){
         foreach($virtualRelationParentRelationLookUp[$virtualRelation['id']] as $relationIndex){
           $relations[$relationIndex]['virtual_relation'] = $virtualRelation;
