@@ -173,7 +173,10 @@ class RelationController extends GenericController
         $users = [];
         $users[$relation['user_id']] = true;
         foreach($relation['all_user_relation_bookmarks'] as $userRelationBookmark){
-          $users[$userRelationBookmark['user_id']] = true;
+          $users[$userRelationBookmark['user_id']] = [
+            'source' => 'bookmark',
+            "user_relation_bookmark" => $userRelationBookmark
+          ];
         }
         $parentRelationUserFollowing = [];
         if($relation['parent_relation_id']){
