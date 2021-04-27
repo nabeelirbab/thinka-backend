@@ -150,11 +150,11 @@ class RelationController extends GenericController
       if(count($parentRelationUserFollowings)){
         $userIdList = [];
         foreach($parentRelationUserFollowings as $userId => $value){
-          $userIdList[] = $userId;
+          $userIdList[] = $userId * 1;
         }
         $relation[0]['parent_relation_user_following'] = (new App\Models\User())->with(['user_basic_information'])->whereIn('id', $userIdList)->get()->toArray();
       }
-      $this->responseGenerator->addDebug('userIdList', $parentRelationUserFollowings);
+      $this->responseGenerator->addDebug('parentRelationUserFollowings', $parentRelationUserFollowings);
       $this->responseGenerator->setSuccess($relation);
       return $this->responseGenerator->generate();
     }else{
@@ -173,10 +173,7 @@ class RelationController extends GenericController
         $users = [];
         $users[$relation['user_id']] = true;
         foreach($relation['all_user_relation_bookmarks'] as $userRelationBookmark){
-          $users[$userRelationBookmark['user_id']] = [
-            'source' => 'bookmark',
-            "user_relation_bookmark" => $userRelationBookmark
-          ];
+          $users[$userRelationBookmark['user_id']] = true;
         }
         $parentRelationUserFollowing = [];
         if($relation['parent_relation_id']){
