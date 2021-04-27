@@ -167,7 +167,9 @@ class RelationController extends GenericController
   }
   private function getParentRelationUserFollowing($relationId){
     if($relationId){
-      $relation = (new App\Models\Relation())->find($relationId)->with('all_user_relation_bookmarks')->get()->toArray();
+      $relation = (new App\Models\Relation())->find($relationId)->with(['all_user_relation_bookmarks' => function($query){
+        $query->with(['user']);
+      }])->get()->toArray();
       if(count($relation)){
         $relation = $relation[0];
         $users = [];
@@ -201,7 +203,9 @@ class RelationController extends GenericController
       'user_opinion.opinion_calculated_column',
       'user_opinions',
       'user_opinions.opinion_calculated_column',
-      'all_user_relation_bookmarks',
+      'all_user_relation_bookmarks' => function($query){
+        $query->with(['user']);
+      },
       'user_relation_context_locks' => function($query){
         $query->where('user_id', $this->userSession('id'));
       }

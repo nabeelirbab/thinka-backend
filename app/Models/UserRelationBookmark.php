@@ -13,4 +13,7 @@ class UserRelationBookmark extends GenericModel
     public function relation(){
         return $this->belongsTo('App\Models\Relation');
     }
+    public function user(){
+        return $this->belongsTo('App\Models\User');
+    }
 }
