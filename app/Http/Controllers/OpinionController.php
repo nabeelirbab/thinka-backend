@@ -56,7 +56,7 @@ class OpinionController extends GenericController
             ->get();
             $entry['user_id'] = $this->userSession('id');
             // if(count($oldOpinions)){
-            //     $entry['impact_amount'] = $oldOpinions[0]['impact_amount'];
+            //     $entry['impact'] = $oldOpinions[0]['impact'];
             // }
             $genericCreate = new GenericCreate($this->tableStructure, $this->model);
             if(!isset($entry['confidence'])){
@@ -65,8 +65,8 @@ class OpinionController extends GenericController
             if(!isset($entry['type']) || $entry['type'] < 0){
                 $entry['type'] = 0;
             }
-            if(isset($entry['impact_amount'])){
-                $entry['impact_amount'] = $entry['impact_amount'];
+            if(isset($entry['impact'])){
+                $entry['impact'] = $entry['impact'];
             }
             $resultObject['success'] = $genericCreate->create($entry);
             if($resultObject['success']){
@@ -101,7 +101,7 @@ class OpinionController extends GenericController
         $requestParam = $request->all();
         $validator = Validator::make($requestParam, [
             "relation_id" => "required|exists:relations,id",
-            "impact_amount" => "required|numeric",
+            "impact" => "required|numeric",
         ]);
         if($validator->fails()){
             $this->responseGenerator->setFail([
@@ -119,10 +119,10 @@ class OpinionController extends GenericController
             $opinionModel->relation_id = $relationId;
             $opinionModel->user_id = $this->userSession('id');
         }
-        $opinionModel->impact_amount = $requestParam['impact_amount'];
+        $opinionModel->impact = $requestParam['impact'];
         $opinionModel->save();
         if($opinionModel->id){
-            $opinionId = $opinionModel->id;
+            $opinionId = $opinionModel->id; 
             $updatedOpinion = $opinionModel->where('id', $opinionId)->with('opinion_calculated_column')->get()->toArray();
             $this->responseGenerator->setSuccess(count($updatedOpinion) > 0 ? $updatedOpinion[0] : null);
         }
