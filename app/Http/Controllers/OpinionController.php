@@ -49,16 +49,17 @@ class OpinionController extends GenericController
         ];
         $validation = new GenericFormValidation($this->tableStructure, "create");
         if($validation->isValid($entry)){
-            $oldOpinions = (new App\Models\Opinion())
+            $latestOpinions = (new App\Models\Opinion())
             ->with('opinion_calculated_column')
             ->where('user_id', $this->userSession('id'))
             ->where('relation_id', $entry['relation_id'])
+            ->orderBy('created_at', 'desc')
+            ->limit(1)
             ->get();
             $entry['user_id'] = $this->userSession('id');
             // if(count($oldOpinions)){
             //     $entry['impact'] = $oldOpinions[0]['impact'];
             // }
-            $genericCreate = new GenericCreate($this->tableStructure, $this->model);
             if(!isset($entry['confidence'])){
                 $entry['confidence'] = $entry['type'] > 0 ? 1 : 0;
             }
@@ -68,14 +69,28 @@ class OpinionController extends GenericController
             if(isset($entry['impact'])){
                 $entry['impact'] = $entry['impact'];
             }
-            $resultObject['success'] = $genericCreate->create($entry);
-            if($resultObject['success']){
-                $this->responseGenerator->adddebug('id', $oldOpinions->toArray());
-                $isChangeOpinion = false;
-                foreach($oldOpinions as $opinion){
-                    $opinion->delete();
-                    $isChangeOpinion = true;
+            $doCreateNew = true;
+            if(count($latestOpinions)){
+                $startDate = new \DateTime($latestOpinions[0]->created_at);
+                $sinceStart = $startDate->diff(new \DateTime());
+                if($sinceStart->h <= 12){ // update instead of creating
+                    $doCreateNew = false;
+                    $latestOpinions[0]->confidence = $entry['confidence'];
+                    $latestOpinions[0]->type = $entry['type'];
+                    $latestOpinions[0]->impact = $entry['impact'];
+                    $latestOpinions[0]->save();
+                    $resultObject['success'] = $latestOpinions[0]->toArray();   
                 }
+            }
+            if($doCreateNew){
+                $genericCreate = new GenericCreate($this->tableStructure, $this->model);
+                $resultObject['success'] = $genericCreate->create($entry);      
+                if(count($latestOpinions)){
+                    $latestOpinions[0]->delete(); // delete latest opinion
+                }
+            }
+            if($resultObject['success']){
+                $isChangeOpinion = false;
                 $newOpinion = (new App\Models\Opinion)->with('opinion_calculated_column')->find($resultObject['success']['id']);
                 $resultObject['success'] = $newOpinion;
                 $notificationMessage = json_encode($resultObject['success']);
