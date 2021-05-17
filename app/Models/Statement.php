@@ -25,4 +25,7 @@ class Statement extends GenericModel
     public function relations(){
         return $this->hasMany('App\Models\Relation');
     }
+    public function user_statement_logic_scores(){
+        return $this->hasMany('App\Models\UserStatementLogicScore');
+    }
 }

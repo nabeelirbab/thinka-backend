@@ -137,7 +137,7 @@ class RelationController extends GenericController
       $this->responseGenerator->setFail([
         "code" => 1,
         "message" => $validator->errors()->toArray()
-      ]);
+      ]); 
       return $this->responseGenerator->generate();
     }
     $relationId = $requestArray['relation_id'];
@@ -216,6 +216,7 @@ class RelationController extends GenericController
         'logic_tree',
         'parent_relation',
         'parent_relation.statement',
+        'statement.user_statement_logic_scores'
       ]);
       $relationModel = $relationModel->whereIn('id', $relationIds);
     }else{
