@@ -216,7 +216,8 @@ class RelationController extends GenericController
         'logic_tree',
         'parent_relation',
         'parent_relation.statement',
-        'statement.user_statement_logic_scores'
+        'statement.user_statement_logic_scores',
+        'statement.user_statement_logic_scores.user',
       ]);
       $relationModel = $relationModel->whereIn('id', $relationIds);
     }else{
