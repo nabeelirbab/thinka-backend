@@ -14,7 +14,18 @@ class RemoveOldRelationColumn extends Migration
     public function up()
     {
         Schema::table('relations', function(Blueprint $table){
-            $table->dropColumn(['impact', 'impact_amount', 'risk_plan_cost', 'residual_risk', 'residual_impact']);
+            if(Schema::hasColumn('relations', 'impact')){
+                $table->dropColumn('impact');
+            }
+            if(Schema::hasColumn('relations', 'risk_plan_cost')){
+                $table->dropColumn('risk_plan_cost');
+            }
+            if(Schema::hasColumn('relations', 'residual_risk')){
+                $table->dropColumn('residual_risk');
+            }
+            if(Schema::hasColumn('relations', 'residual_impact')){
+                $table->dropColumn('residual_impact');
+            }
         });
     }
 
