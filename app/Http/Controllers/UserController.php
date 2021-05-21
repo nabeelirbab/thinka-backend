@@ -96,7 +96,7 @@ class UserController extends GenericController
             Mail::send('welcome-email', $data, function($message) {
               $message->to('plenosjohn@yahoo.com')
               ->subject('Welcome to Thinka');
-              $message->from('noreply@thinka.io','Thinka');
+              $message->from(config('app.MAIL_FROM_ADDRESS'),'Thinka');
            });
           }else{
             $this->responseGenerator->addDebug('MAIL_MAILERFailed', config('app.MAIL_MAILER'));
