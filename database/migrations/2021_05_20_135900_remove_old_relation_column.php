@@ -26,6 +26,9 @@ class RemoveOldRelationColumn extends Migration
             if(Schema::hasColumn('relations', 'residual_impact')){
                 $table->dropColumn('residual_impact');
             }
+            if(Schema::hasColumn('relations', 'impact_amount')){
+                $table->dropColumn('impact_amount');
+            }
         });
     }
 

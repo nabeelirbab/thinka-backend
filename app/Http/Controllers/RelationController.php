@@ -206,6 +206,12 @@ class RelationController extends GenericController
       'all_user_relation_bookmarks' => function($query){
         $query->with(['user']);
       },
+      'all_user_sub_relation_bookmarks' => function($query){
+        $query->with(['user']);
+      },
+      'all_user_sub_relation_bookmarks' => function($query){
+        $query->with(['user']);
+      },
       'user_relation_context_locks' => function($query){
         $query->where('user_id', $this->userSession('id'));
       }
