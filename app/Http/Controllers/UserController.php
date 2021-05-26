@@ -95,7 +95,7 @@ class UserController extends GenericController
             $data = ['user' => 'Test'];
             Mail::send('welcome-email', $data, function($message) use ($requestData) {
               $message->to($requestData['email'])
-              ->subject('Welcome to Thinka')
+              ->subject('Welcome to Thinka');
               $message->from('noreply@thinka.io','Thinka');
            });
           }else{
