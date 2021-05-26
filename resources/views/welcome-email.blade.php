@@ -1,5 +1,5 @@
 <html>
   <body>
-    Welcome to Thinka.io {{$user}}
+    Welcome to Thinka.io <strong>{{$user}}</strong>
   </body>
 </html>
