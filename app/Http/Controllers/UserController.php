@@ -93,10 +93,9 @@ class UserController extends GenericController
           if(config('app.MAIL_MAILER') === 'smtp'){
             $this->responseGenerator->addDebug('MAIL_MAILERPass', config('app.MAIL_MAILER'));
             $data = ['user' => 'Test'];
-            Mail::send('welcome-email', $data, function($message) {
+            Mail::send('welcome-email', $data, function($message) use ($requestData) {
               $message->to($requestData['email'])
               ->subject('Welcome to Thinka')
-              ->text("Hello ".$requestData['username'].", thank you for registering to thinka.io");
               $message->from('noreply@thinka.io','Thinka');
            });
           }else{
