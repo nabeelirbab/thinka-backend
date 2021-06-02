@@ -9,6 +9,7 @@ use App\Generic\GenericController;
 use Illuminate\Support\Facades\Validator;
 use App;
 use App\Http\Controllers\Relation\NotificationBuilder as NotificationBuilder;
+use App\Http\Controllers\Relation\UserStatementLogicScore as UserStatementLogicScore;
 
 class OpinionController extends GenericController
 {
@@ -98,8 +99,9 @@ class OpinionController extends GenericController
                 $notificationBuilder->getUserToNotifyFromParentRelation($entry['relation_id']);
                 $usersToNotify = $notificationBuilder->withNotificationUserExtraData(); // convert the value of each array element with extra data
                 unset($usersToNotify[$this->userSession('id')]);
-                $this->responseGenerator->adddebug('user_id', $this->userSession('id'));
-                $this->responseGenerator->adddebug('users_notify', $usersToNotify);
+                if(isset($entry['get_user_statement_logic_scores'])){
+                    $resultObject['success']['user_statement_logic_scores'] = (new UserStatementLogicScore())->calculateUserStatementLogicScore($entry['sub_relation_statement_id_list']);
+                }
                 (new App\Models\Notification())->createRelationUpdateNotification($entry['relation_id'], $usersToNotify, $notificationMessage, 2);
             }
         }else{

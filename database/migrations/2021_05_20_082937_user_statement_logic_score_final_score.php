@@ -37,7 +37,7 @@ class UserStatementLogicScoreFinalScore extends Migration
                     MIN(opinion_calculated_columns.score_truth) AS min_opinion_score_truth,
                     IF(
                         MIN(opinion_calculated_columns.score_truth) = 0 && MAX(opinion_calculated_columns.score_truth) = 0,
-                        0, 
+                        0,
                         IF(
                             MIN(opinion_calculated_columns.score_truth) >= 0 && MAX(opinion_calculated_columns.score_truth) > 0, 
                             1, 

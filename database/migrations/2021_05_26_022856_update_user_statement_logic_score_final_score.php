@@ -16,7 +16,15 @@ class UpdateUserStatementLogicScoreFinalScore extends Migration
         \DB::statement("DROP VIEW IF EXISTS user_statement_logic_scores");
         \DB::statement("
             CREATE VIEW user_statement_logic_scores AS
-            SELECT user_id, statement_id, opinion_count, flag,
+            SELECT 
+                user_id,
+                statement_id, 
+                opinion_count, 
+                flag, 
+                summed_opinion_score_truth, 
+                max_opinion_score_truth, 
+                min_opinion_score_truth, 
+                max_opinion_confidence,
                 IF(flag = 0,
                     max_opinion_confidence,
                     IF(
@@ -38,10 +46,10 @@ class UpdateUserStatementLogicScoreFinalScore extends Migration
                     MAX(opinions.confidence) AS max_opinion_confidence,
                     MAX(opinion_calculated_columns.score_truth) AS max_opinion_score_truth,
                     MIN(opinion_calculated_columns.score_truth) AS min_opinion_score_truth,
-                    SUM(opinion_calculated_columns.score_truth) AS summed_opinion_score_truth,
+                    IF(SUM(opinion_calculated_columns.score_truth) > 1, 1, SUM(opinion_calculated_columns.score_truth)) AS summed_opinion_score_truth,
                     IF(
                         MIN(opinion_calculated_columns.score_truth) = 0 && MAX(opinion_calculated_columns.score_truth) = 0,
-                        0, 
+                        0,
                         IF(
                             MIN(opinion_calculated_columns.score_truth) >= 0 && MAX(opinion_calculated_columns.score_truth) > 0, 
                             1, 
@@ -51,7 +59,12 @@ class UpdateUserStatementLogicScoreFinalScore extends Migration
                 FROM opinions
                 LEFT JOIN relations on relations.id = opinions.relation_id
                 LEFT JOIN opinion_calculated_columns on opinion_calculated_columns.id = opinions.id
+                WHERE 
+                    relations.published_at IS NOT NULL
+                    AND relations.deleted_at IS NULL
+                    AND opinions.deleted_at IS NULL
                 GROUP BY opinions.user_id, relations.statement_id
+                
             ) AS core_opinions
         ");
     }

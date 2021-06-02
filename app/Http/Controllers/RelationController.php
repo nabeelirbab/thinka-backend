@@ -10,6 +10,7 @@ use DB;
 use App\Generic\Core\GenericFormValidation;
 use App\Generic\Core\GenericUpdate;
 use App\Generic\Core\GenericRetrieve as GenericRetrieve;
+use App\Http\Controllers\Relation\UserStatementLogicScore as UserStatementLogicScore;
 
 class RelationController extends GenericController
 {
@@ -145,6 +146,7 @@ class RelationController extends GenericController
     $relationModel = (new App\Models\Relation())->find($relationId);
     if($relationModel->published_at !== null || $relationModel->user_id * 1 === $userId * 1){
       $relation = $this->recursiveRetrieveTree([$relationId]);
+      $relation[0]['user_statement_logic_scores'] = (new UserStatementLogicScore())->calculateUserStatementLogicScore($relation[0]['sub_relation_statement_id_list']);
       $parentRelationUserFollowings = $relation[0]['parent_relation_id'] ? $this->getParentRelationUserFollowing($relation[0]['parent_relation_id']) : [];
       $relation[0]['parent_relation_user_following'] = [];
       if(count($parentRelationUserFollowings)){
@@ -221,9 +223,7 @@ class RelationController extends GenericController
       $with = array_merge($with, [
         'logic_tree',
         'parent_relation',
-        'parent_relation.statement',
-        'statement.user_statement_logic_scores',
-        'statement.user_statement_logic_scores.user',
+        'parent_relation.statement'
       ]);
       $relationModel = $relationModel->whereIn('id', $relationIds);
     }else{
@@ -245,6 +245,7 @@ class RelationController extends GenericController
         $relationIdList[] = $relation['id'] * 1;
         $relationIdLookUp[$relation['id']] = $relationKey;
         $relations[$relationKey]['relations'] = [];
+        $relations[$relationKey]['sub_relation_statement_id_list'] = array(); // object of statement ids, contains all the statement ids of the sub relations
         $relations[$relationKey]['virtual_relation'] = null;
         if($relation['virtual_relation_id'] != null){
           if(!isset($virtualRelationParentRelationLookUp[$relation['virtual_relation_id']])){
@@ -257,17 +258,28 @@ class RelationController extends GenericController
       $virtualRelations = $this->recursiveRetrieveTree($virtualRelationIdList, 0, $deep - $currentDeep);
       foreach($virtualRelations as $virtualRelation){
         foreach($virtualRelationParentRelationLookUp[$virtualRelation['id']] as $relationIndex){
+          if($virtualRelation['statement_id']){
+            $relations[$relationIndex]['sub_relation_statement_id_list'][] = $virtualRelation['statement_id'];
+          }
+          $relations[$relationIndex]['sub_relation_statement_id_list'] = array_merge($relations[$relationIndex]['sub_relation_statement_id_list'], $virtualRelation['sub_relation_statement_id_list']);
+          unset($virtualRelation['sub_relation_statement_id_list']);
           $relations[$relationIndex]['virtual_relation'] = $virtualRelation;
         }
       }
       $subRelations = $this->recursiveRetrieveTree($relationIdList, $currentDeep);
       foreach($subRelations as $subRelation){
         $parentRelationIndex = $relationIdLookUp[$subRelation['parent_relation_id']];
+        if($subRelation['statement_id']){
+          $relations[$parentRelationIndex]['sub_relation_statement_id_list'][] = $subRelation['statement_id'];
+        }
+        $relations[$parentRelationIndex]['sub_relation_statement_id_list'] = array_merge($relations[$parentRelationIndex]['sub_relation_statement_id_list'], $subRelation['sub_relation_statement_id_list']);
+        unset($subRelation['sub_relation_statement_id_list']);
         $relations[$parentRelationIndex]['relations'][] = $subRelation;
       }
     }
     return $relations;
   }
+  
   public function retrieve(Request $request){
     $requestArray = $this->systemGenerateRetrieveParameter($request->all());
     $validator = Validator::make($requestArray, ["select" => "required|array|min:1"]);
