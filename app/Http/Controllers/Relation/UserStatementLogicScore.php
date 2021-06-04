@@ -15,7 +15,7 @@ class UserStatementLogicScore
           'opinion_count' => 0,
           'flag' => 0,
           'summed_opinion_score_truth' => 0,
-          'max_opinion_confidasdence' => NULL,
+          'max_opinion_confidence' => NULL,
           'max_opinion_score_truth' => NULL,
           'min_opinion_score_truth' => NULL,
           'final_score' => 0
