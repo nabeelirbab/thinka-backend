@@ -23,9 +23,9 @@ class UserStatementLogicScore
       }
       $userLogicScores[$userId]['opinion_count'] += $userStatementLogicScore['opinion_count'];
       $userLogicScores[$userId]['summed_opinion_score_truth'] += $userStatementLogicScore['summed_opinion_score_truth'];
-      // if($userLogicScores[$userId]['max_opinion_confidence'] == NULL || $userStatementLogicScore['max_opinion_confidence'] > $userLogicScores[$userId]['max_opinion_confidence']){
-      //   $userLogicScores[$userId]['max_opinion_confidence'] = $userStatementLogicScore['max_opinion_confidence'];
-      // }
+      if($userLogicScores[$userId]['max_opinion_confidence'] == NULL || $userStatementLogicScore['max_opinion_confidence'] > $userLogicScores[$userId]['max_opinion_confidence']){
+        $userLogicScores[$userId]['max_opinion_confidence'] = $userStatementLogicScore['max_opinion_confidence'];
+      }
       if($userLogicScores[$userId]['max_opinion_score_truth'] == NULL || $userStatementLogicScore['max_opinion_score_truth'] > $userLogicScores[$userId]['max_opinion_score_truth']){
         $userLogicScores[$userId]['max_opinion_score_truth'] = $userStatementLogicScore['max_opinion_score_truth'];
       }
