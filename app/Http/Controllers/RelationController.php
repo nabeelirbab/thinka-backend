@@ -147,7 +147,7 @@ class RelationController extends GenericController
     if($relationModel->published_at !== null || $relationModel->user_id * 1 === $userId * 1){
       $relation = $this->recursiveRetrieveTree([$relationId]);
       if($relation['statement_id']){
-        $relation[0]['sub_relation_statement_id_list'][] = $relation['statement_id'];
+        $relation[0]['sub_relation_statement_id_list'][] = $relation[0]['statement_id'];
       }
       $relation[0]['user_statement_logic_scores'] = (new UserStatementLogicScore())->calculateUserStatementLogicScore($relation[0]['sub_relation_statement_id_list']);
       $parentRelationUserFollowings = $relation[0]['parent_relation_id'] ? $this->getParentRelationUserFollowing($relation[0]['parent_relation_id']) : [];
