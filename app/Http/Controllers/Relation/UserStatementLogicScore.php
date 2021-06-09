@@ -25,10 +25,8 @@ class UserStatementLogicScore
       $userLogicScores[$userId]['summed_opinion_score_truth'] += $userStatementLogicScore['summed_opinion_score_truth'];
       if(
         $userLogicScores[$userId]['max_opinion_confidence'] == NULL 
-        || 
-        $userStatementLogicScore['max_opinion_confidence'] 
-        > 
-        $userLogicScores[$userId]['max_opinion_confidence']){
+        || $userStatementLogicScore['max_opinion_confidence'] > $userLogicScores[$userId]['max_opinion_confidence']
+      ){
         $userLogicScores[$userId]['max_opinion_confidence'] = $userStatementLogicScore['max_opinion_confidence'];
       }
       if($userLogicScores[$userId]['max_opinion_score_truth'] == NULL || $userStatementLogicScore['max_opinion_score_truth'] > $userLogicScores[$userId]['max_opinion_score_truth']){
@@ -44,16 +42,16 @@ class UserStatementLogicScore
       }
     }
     $userIdList = [];
-    foreach($userLogicScores as $key => $userLogicScore){
-      $userIdList[] = $key;
+    foreach($userLogicScores as $userId => $userLogicScore){
+      $userIdList[] = $userId;
       if($userLogicScore['flag'] == 0 ){ // if white flag, max score_truth
-        $userLogicScores[$key]['final_score'] = $userLogicScore['max_opinion_confidence'];
+        $userLogicScores[$userId]['final_score'] = $userLogicScore['max_opinion_confidence'];
       }else if($userLogicScore['flag'] == 1){ // if blue flag, max score_truth
-        $userLogicScores[$key]['final_score'] = $userLogicScore['max_opinion_score_truth'] > 1 ? 1 : $userLogicScore['max_opinion_score_truth'];
+        $userLogicScores[$userId]['final_score'] = $userLogicScore['max_opinion_score_truth'] > 1 ? 1 : $userLogicScore['max_opinion_score_truth'];
       }else if($userLogicScore['flag'] == 2){ // if black flag, min score_truth
-        $userLogicScores[$key]['final_score'] = $userLogicScore['min_opinion_score_truth'] < -1 ? -1 : $userLogicScore['min_opinion_score_truth'];
+        $userLogicScores[$userId]['final_score'] = $userLogicScore['min_opinion_score_truth'] < -1 ? -1 : $userLogicScore['min_opinion_score_truth'];
       }else{ // if contradicting
-        $userLogicScores[$key]['final_score'] = 0;
+        $userLogicScores[$userId]['final_score'] = 0;
       }
     }
     $users = (new App\Models\User())->select(['id', 'email', 'username'])

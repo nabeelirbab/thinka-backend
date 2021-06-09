@@ -146,6 +146,9 @@ class RelationController extends GenericController
     $relationModel = (new App\Models\Relation())->find($relationId);
     if($relationModel->published_at !== null || $relationModel->user_id * 1 === $userId * 1){
       $relation = $this->recursiveRetrieveTree([$relationId]);
+      if($relation['statement_id']){
+        $relation[0]['sub_relation_statement_id_list'][] = $relation['statement_id'];
+      }
       $relation[0]['user_statement_logic_scores'] = (new UserStatementLogicScore())->calculateUserStatementLogicScore($relation[0]['sub_relation_statement_id_list']);
       $parentRelationUserFollowings = $relation[0]['parent_relation_id'] ? $this->getParentRelationUserFollowing($relation[0]['parent_relation_id']) : [];
       $relation[0]['parent_relation_user_following'] = [];
@@ -262,7 +265,7 @@ class RelationController extends GenericController
             $relations[$relationIndex]['sub_relation_statement_id_list'][] = $virtualRelation['statement_id'];
           }
           $relations[$relationIndex]['sub_relation_statement_id_list'] = array_merge($relations[$relationIndex]['sub_relation_statement_id_list'], $virtualRelation['sub_relation_statement_id_list']);
-          unset($virtualRelation['sub_relation_statement_id_list']);
+          // unset($virtualRelation['sub_relation_statement_id_list']);
           $relations[$relationIndex]['virtual_relation'] = $virtualRelation;
         }
       }
@@ -273,7 +276,7 @@ class RelationController extends GenericController
           $relations[$parentRelationIndex]['sub_relation_statement_id_list'][] = $subRelation['statement_id'];
         }
         $relations[$parentRelationIndex]['sub_relation_statement_id_list'] = array_merge($relations[$parentRelationIndex]['sub_relation_statement_id_list'], $subRelation['sub_relation_statement_id_list']);
-        unset($subRelation['sub_relation_statement_id_list']);
+        // unset($subRelation['sub_relation_statement_id_list']);
         $relations[$parentRelationIndex]['relations'][] = $subRelation;
       }
     }
@@ -496,7 +499,6 @@ class RelationController extends GenericController
       'virtual_relation_id' => 'required|exists:relations,id',
       'relevance_window' => 'required',
       'relation_type_id' => 'required|exists:relation_types,id',
-      'impact_amount' => 'required',
       'logic_tree_id' => 'required|exists:logic_trees,id',
       'is_published' => 'required',
     ]);
@@ -515,7 +517,6 @@ class RelationController extends GenericController
         $relationModel->parent_relation_id = $entry['parent_relation_id'];
         $relationModel->relevance_window = $entry['relevance_window'];
         $relationModel->relation_type_id = $entry['relation_type_id'];
-        $relationModel->impact_amount = $entry['impact_amount'];
         $relationModel->logic_tree_id = $entry['logic_tree_id'];
         $relationModel->published_at = isset($entry['is_published']) && $entry['is_published'] ? date('Y-m-d H:i:s') : null;
         $relationModel->user_id = $this->userSession('id');
@@ -535,7 +536,11 @@ class RelationController extends GenericController
   private function recursivePublish($relationId, $publishedAt, &$relationToNotifyList, $parentIds, $parentUserIds){
     $relation = (new App\Models\Relation())->with(['relations' => function($query){
       $query->where('user_id', $this->userSession('id'));
-    }])->find($relationId);
+    }, 'virtual_relation'])->find($relationId);
+    $relationResult = $relation->get()->toArray();
+    if($publishedAt && $relation['virtual_relation'] && !$relation['virtual_relation']['published_at']){ // the virtual relation is not yet published
+      return false;
+    }
     $subRelations = ($relation->toArray())['relations'];
     $message = null;
     if($publishedAt && !$relation->published_at){ // publish and relation not yet published
