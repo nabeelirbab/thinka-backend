@@ -37,7 +37,7 @@ class UserStatementLogicScore
       }
       if($userLogicScores[$userId]['flag'] === 0 || $userLogicScores[$userId]['flag'] == $userStatementLogicScore['flag']){ // if flags are the same
         $userLogicScores[$userId]['flag'] = $userStatementLogicScore['flag'];
-      }else if($userLogicScores[$userId]['flag'] != $userStatementLogicScore['flag']){ // if flags are contradicting
+      }else if($userLogicScores[$userId]['flag'] != $userStatementLogicScore['flag'] && $userStatementLogicScore['flag'] !== 0){ // if flags are contradicting
         $userLogicScores[$userId]['flag'] = 3;
       }
     }
