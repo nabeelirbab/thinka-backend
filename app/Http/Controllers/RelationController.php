@@ -11,6 +11,7 @@ use App\Generic\Core\GenericFormValidation;
 use App\Generic\Core\GenericUpdate;
 use App\Generic\Core\GenericRetrieve as GenericRetrieve;
 use App\Http\Controllers\Relation\UserStatementLogicScore as UserStatementLogicScore;
+use Mail;
 
 class RelationController extends GenericController
 {
