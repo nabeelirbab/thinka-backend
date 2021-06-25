@@ -485,7 +485,7 @@ class RelationController extends GenericController
     $data = [
       'message' => $message,
       'parentRelationId' => $parentRelationId,
-      'statement' => $statementText,
+      'statementText' => $statementText,
       'kebabStatement' => $kebabStatement
     ];
     $this->responseGenerator->addDebug('mail_data', $data);
