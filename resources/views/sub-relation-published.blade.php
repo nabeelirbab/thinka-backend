@@ -4,12 +4,12 @@
     Hello {{$username}},
   </p>
   <p>
-    {{$message}}
+    {{$notificationMessage}}
   </p>
   <p>
-    <!-- <a href="https://staging.thinka.io/#/branch/{{$parentRelationId}}/t/{{$kebabStatement}}">
+    <a href="https://staging.thinka.io/#/branch/{{$parentRelationId}}/t/{{$kebabStatement}}#{{relationId}}">
       "{{$statementText}}"
-    </a> -->
+    </a>
   </p>
   </body>
 </html>

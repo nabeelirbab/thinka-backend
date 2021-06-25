@@ -483,7 +483,8 @@ class RelationController extends GenericController
     $users = (new App\Models\User())->select(['id', 'email', 'username'])->whereIn('id', $subscriberUserIds)->get()->toArray();
     $kebabStatement = preg_replace('/[[:space:]]+/', '-', strtolower($statementText));
     $data = [
-      'message' => $message,
+      'relationId' => $subRelationId,
+      'notificationMessage' => $message,
       'parentRelationId' => $parentRelationId,
       'statementText' => $statementText,
       'kebabStatement' => $kebabStatement
