@@ -7,7 +7,7 @@
     {{$notificationMessage}}
   </p>
   <p>
-    <a href="https://staging.thinka.io/#/branch/{{$parentRelationId}}/t/{{$kebabStatement}}#{{relationId}}">
+    <a href="https://staging.thinka.io/#/branch/{{$parentRelationId}}/t/{{$kebabStatement}}#{{$relationId}}">
       "{{$statementText}}"
     </a>
   </p>
