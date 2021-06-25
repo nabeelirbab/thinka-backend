@@ -11,32 +11,31 @@ class Notification extends GenericModel
     use HasFactory;
     public function createNotification(){
     }
-    public function createSubRelationUpdateNotification($subRelationId, $userId, $userRelations, $message){
+    public function createSubRelationUpdateNotification($type, $subRelationId, $userId, $subscriberUserIds, $message){// type: 1 - general, 2 - publish co author, 3 - publish bookmarker
         $this->type = 4;
         $this->save();
         $notificationId = $this->id;
         $createdAt = $this->created_at;
         $notifcationSubRelationUpdateModel = new NotificationSubRelationUpdate();
         $notifcationSubRelationUpdateModel->notification_id = $notificationId;
+        $notifcationSubRelationUpdateModel->type = $type;
         $notifcationSubRelationUpdateModel->user_id = $userId;
         $notifcationSubRelationUpdateModel->sub_relation_id = $subRelationId;
         $notifcationSubRelationUpdateModel->message = $message;
         $notifcationSubRelationUpdateModel->save();
         $notificationRelationUpdateModelId = $notifcationSubRelationUpdateModel->id;
-        $notificationUsers = [];
-        foreach($userRelations as $key => $userRelation){
-            $userRelations[$key]['notification_sub_relation_update_id'] = $notificationRelationUpdateModelId;
+        $notificationUsers = [];    
+        foreach($subscriberUserIds as $subscriberUserId){
             $notificationUsers[] = [
                 'notification_id' => $notificationId,
-                'user_id' => $userRelation['user_id'],
+                'user_id' => $subscriberUserId,
                 'status' => 0,
                 'created_at' => $createdAt,
                 'updated_at' => $createdAt,
             ];
         }
-        $notificationSubRelationUpdateUserRelationModel = new NotificationSubRelationUpdateUserRelation();
-        $notificationSubRelationUpdateUserRelationModel->insert($userRelations);
         (new NotificationUser())->insert($notificationUsers);
+        return $notificationUsers;
     }
     public function createRelationUpdateNotification($relationId, $userId, $message, $type = null){ // user id of the user who made the update
         $this->type = 2;
@@ -76,7 +75,7 @@ class Notification extends GenericModel
                 }
             }
         }else{
-            $usersToNotify = $userId;
+            $usersToNotify = $userId; // $userId can be an array
             foreach($usersToNotify as $userIdKey => $reason){
                 $notificationUsers[] = [
                     'notification_id' => $notificationId,
@@ -90,7 +89,7 @@ class Notification extends GenericModel
         }
         $notificationUserModel = new NotificationUser();
         $notificationUserModel->insert($notificationUsers);
-        return $notificationId;
+        return $notificationUsers;
     }
     public function createStatementUpdateNotification($statementId, $relationId, $userId, $message){
         $this->type = 3;
@@ -119,7 +118,7 @@ class Notification extends GenericModel
         }
         $notificationUserModel = new NotificationUser();
         $notificationUserModel->insert($notificationUsers);
-        return $notificationId;
+        return $notificationUsers;
     }
 
     public function notification_relation_update(){

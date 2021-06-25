@@ -37,7 +37,21 @@ class NotificationUserController extends GenericController
                                     'foreign_tables' => [
                                         "statement" => [
                                             "is_child" => false
-                                        ]
+                                        ],
+                                        "virtual_relation" => [
+                                            "is_child" => false,
+                                            'validation_required' => false,
+                                            "true_table" => 'relations',
+                                            'foreign_tables' => [
+                                              'statement' => [
+                                                "is_child" => false,
+                                                "validation_required" => false,
+                                                'foreign_tables' => [
+                                                  'statement_type' => []
+                                                ]
+                                              ],
+                                            ]
+                                          ]
                                     ]
                                 ]
                             ]
