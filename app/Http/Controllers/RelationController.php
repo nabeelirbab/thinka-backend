@@ -493,7 +493,7 @@ class RelationController extends GenericController
       $this->responseGenerator->addDebug('MAIL_MAILERPass', config('app.MAIL_MAILER'));
       foreach($users as $user){
         $data['username'] = $user['username'];
-        Mail::send('sub-relation-published.php', $data, function($message) use ($requestData) {
+        Mail::send('sub-relation-published.php', $data, function($message) use ($user) {
           $message->to($user['email'])
           ->subject('Statement Tree Update');
           $message->from('noreply@thinka.io','Thinka');
