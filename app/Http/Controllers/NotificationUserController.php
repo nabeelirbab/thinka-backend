@@ -137,5 +137,6 @@ class NotificationUserController extends GenericController
                 ->update(['status' => $entry['status']]);
             $this->responseGenerator->setSuccess(true);
         }
+        return $this->responseGenerator->generate();
     }
 }
