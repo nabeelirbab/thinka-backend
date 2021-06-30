@@ -92,7 +92,18 @@ class OpinionController extends GenericController
             }
             if($resultObject['success']){
                 $isChangeOpinion = false;
-                $newOpinion = (new App\Models\Opinion)->with('opinion_calculated_column')->find($resultObject['success']['id']);
+                $newOpinion = (new App\Models\Opinion)->with([
+                    'opinion_calculated_column', 
+                    'relation' => function($query){
+                        $query->select(['id', 'statement_id', 'virtual_relation_id']);
+                    }, 
+                    'relation.statement' => function($query){
+                        $query->select(['id', 'text']);
+                    },
+                    'relation.virtual_relation.statement' => function($query){
+                        $query->select(['id', 'text']);
+                    }
+                ])->find($resultObject['success']['id']);
                 $resultObject['success'] = $newOpinion;
                 $notificationMessage = json_encode($resultObject['success']);
                 $notificationBuilder = new NotificationBuilder();
@@ -102,7 +113,7 @@ class OpinionController extends GenericController
                 if(isset($entry['get_user_statement_logic_scores'])){
                     $resultObject['success']['user_statement_logic_scores'] = (new UserStatementLogicScore())->calculateUserStatementLogicScore($entry['sub_relation_statement_id_list']);
                 }
-                (new App\Models\Notification())->createRelationUpdateNotification($entry['relation_id'], $usersToNotify, $notificationMessage, 2);
+                $this->notifySubscribers($entry['relation_id'], $usersToNotify, $notificationMessage, $newOpinion);
             }
         }else{
           $resultObject['fail'] = [
@@ -114,6 +125,84 @@ class OpinionController extends GenericController
         $this->responseGenerator->setFail($resultObject['fail']);
         return $this->responseGenerator->generate();
     }
+    private function generateOpinionMessage($type, $confidence = 0, $impact = null){
+        $typeDescriptions = [
+            'I have no explicit opinion.',
+            'I think the statement is false', // thumbs down
+            'I think the statement is true', // but has no impact', // point
+            'I think the statement is true' // and has Impact' // thumbs up
+        ];
+        if(!isset($typeDescriptions[$type])){
+            return 'Unknown opinion';
+        }
+        $message = $typeDescriptions[$type];
+        //impact
+        if($impact !== null && $type > 0){
+            if($impact === 0){
+                if ($type == 2) $message .= ' though it has no impact';
+            }else {
+                $percentImpact = number_format($impact * 100, 0);
+                $magnitudeMessage = '';
+                if ($impact == 1 || $impact == -1){
+                    $magnitudeMessage .= " and makes a critical";
+                } else if ($impact * $impact >= 0.25){
+                    $magnitudeMessage .= " and makes a strong";
+
+                } else {
+                    $magnitudeMessage .= 'and makes a <em class="font-weight-bold">' . $percentImpact . '%</em>';
+                }
+                if($impact < 0){
+                    $message .= ` ${magnitudeMessage} counter impact`;
+                }else if($impact > 0){
+                    $message .= ` ${magnitudeMessage} supportive impact`;
+                }
+            } // impact == 0
+        }
+        // confidence
+        if($type){
+            $message .= ' with <em class="font-weight-bold"> '. (number_format($confidence * 100, 0)) .'%</em> confidence.';
+        }
+        return $message;
+    }
+    private function notifySubscribers($relationId, $usersToNotify, $notificationMessage, $opinion){
+        (new App\Models\Notification())->createRelationUpdateNotification(
+            $relationId,
+            $usersToNotify,
+            $notificationMessage,
+            2
+        );
+        $userIdList = [];
+        foreach($usersToNotify as $userId => $reason){
+            $userIdList[] = $userId;
+        }
+        $users = (new App\Models\User())
+            ->select(['id', 'email', 'username'])
+            ->whereIn('id', $userIdList)
+            ->where('id', '!=', $this->userSession('id'))
+            ->get()->toArray();
+        $statementText = $opinion['relation']['virtual_relation_id'] ? $opinion['relation']['virtual_relation']['statement']['text'] : $opinion['relation']['statement']['text'];
+        $kebabStatement = preg_replace('/[[:space:]]+/', '-', strtolower($statementText));
+        $opinionMessage = $this->generateOpinionMessage($opinion['type'], $opinion['confidence'], $opinion['impact']);
+        $data = [
+          'relationId' => $relationId,
+          'statementText' => $statementText,
+          'kebabStatement' => $kebabStatement,
+          'notificationMessage' => $this->userSession('username') . ' made an opinion on a relation that you are following',
+          'opinionMessage' => $opinionMessage
+        ];
+        
+        $this->responseGenerator->addDebug('data', $data);
+        if(config('app.MAIL_MAILER') === 'smtp'){
+          foreach($users as $user){
+            $data['username'] = $user['username'];
+            Mail::send('opinion-created-notification', $data, function($message) use ($user) {
+              $message->to($user['email'])
+              ->subject('Statement Tree Update');
+              $message->from('noreply@thinka.io','Thinka');
+            });
+          }
+        }
+      }
     public function changeImpact(Request $request){
         $requestParam = $request->all();
         $validator = Validator::make($requestParam, [

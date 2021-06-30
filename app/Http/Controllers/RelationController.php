@@ -368,7 +368,33 @@ class RelationController extends GenericController
       $resultObject['success'] = $genericUpdate->update($entry);
       if(isset($entry['impact_amount'])){
         $notification = new App\Models\Notification();
-        $notification->createRelationUpdateNotification($entry['id'], $this->userSession('id'), "Updated impact amount to ". $entry['impact_amount'] . "%");
+        $notificationMessage = "Updated impact amount to ". $entry['impact_amount'] . "%";
+        $notification->createRelationUpdateNotification($entry['id'], $this->userSession('id'), $notificationMessage);
+        
+        // $relationSubsscribers = $this->getRelationSubscribers($relationModel->id);
+        
+        // $coAuthors = $relationSubsscribers['coauthors'];
+        // $bookmarkers = $relationSubsscribers['bookmarkers'];
+        // $users = (new App\Models\User())->select(['id', 'email', 'username'])->whereIn('id', $subscriberUserIds)->get()->toArray();
+        // $kebabStatement = preg_replace('/[[:space:]]+/', '-', strtolower($statementText));
+        // $data = [
+        //   'relationId' => $subRelationId,
+        //   'notificationMessage' => $message,
+        //   'parentRelationId' => $parentRelationId,
+        //   'statementText' => $statementText,
+        //   'kebabStatement' => $kebabStatement
+        // ];
+        // if(config('app.MAIL_MAILER') === 'smtp'){
+        //   foreach($users as $user){
+        //     $data['username'] = $user['username'];
+        //     Mail::send('sub-relation-published', $data, function($message) use ($user) {
+        //       $message->to($user['email'])
+        //       ->subject('Statement Tree Update');
+        //       $message->from('noreply@thinka.io','Thinka');
+        //     });
+        //   }
+        // }
+
       }
       $this->responseGenerator->addDebug("relation id", $entry['id']);
     }else{
@@ -410,7 +436,6 @@ class RelationController extends GenericController
         }
         $userToNotify = array(); // object - key is user id
         $relationIds = array();
-        // get the deepest
         $parentRelations = [];
         if($relationModel->parent_relation_id){
           $parentRelations = $this->getParentRelations($relationModel->id);
@@ -441,7 +466,7 @@ class RelationController extends GenericController
             }
           }
         }
-        $this->responseGenerator->addDebug('bookmarkers', $bookmarkers);
+        
         $this->notifySubscribers(
           2, // publish co author
           $entry['id'], // relation id of head relation being published
@@ -472,6 +497,36 @@ class RelationController extends GenericController
     }
     return $this->responseGenerator->generate();
   }
+  private function getRelationSubscribers($relationId){
+    $userToNotify = array(); // object - key is user id
+    $relationIds = array();
+    $parentRelations = $this->getParentRelations($relationId);
+    foreach($parentRelations as $parentRelation){
+      $userToNotify[$parentRelation['user_id']] = 1; // 1- co-author, 2 - bookmarkers
+      $relationIds[] = $parentRelation['id'];
+    }
+    $userRelationBookmarks = (new App\Models\UserRelationBookmark())->whereIn('relation_id', $relationIds)->get()->toArray();
+    foreach($userRelationBookmarks as $userRelationBookmark){
+      if(!isset($userToNotify[$userRelationBookmark['user_id']])){
+        $userToNotify[$userRelationBookmark['user_id']] = 2;// 1- co-author, 2 - bookmarkers
+      }
+    }
+    $coAuthors = [];
+    $bookmarkers = []; // users who bookmark
+    foreach($userToNotify as $userId => $type){
+      if($userId * 1 != $this->userSession('id') * 1){
+        if($type === 1){
+          $coAuthors[] = $userId;
+        }else{
+          $bookmarkers[] = $userId;
+        }
+      }
+    }
+    return [
+      'coauthors' => $coAuthors,
+      'bookmarkers' => $bookmarkers
+    ];
+  }
   private function notifySubscribers($type, $subRelationId, $userId, $subscriberUserIds, $message, $parentRelationId, $statementText){
     (new App\Models\Notification())->createSubRelationUpdateNotification(
       $type,
@@ -489,9 +544,7 @@ class RelationController extends GenericController
       'statementText' => $statementText,
       'kebabStatement' => $kebabStatement
     ];
-    $this->responseGenerator->addDebug('mail_data', $data);
     if(config('app.MAIL_MAILER') === 'smtp'){
-      $this->responseGenerator->addDebug('MAIL_MAILERPass', config('app.MAIL_MAILER'));
       foreach($users as $user){
         $data['username'] = $user['username'];
         Mail::send('sub-relation-published', $data, function($message) use ($user) {

@@ -17,4 +17,7 @@ class Opinion extends GenericModel
     public function opinion_calculated_column(){
         return $this->hasOne('App\Models\OpinionCalculatedColumn', 'id');
     }
+    public function relation(){
+        return $this->belongsTo('App\Models\Relation');
+    }
 }

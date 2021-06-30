@@ -64,6 +64,7 @@ class NotificationBuilder
       }
     }
   }
+  
   public function withNotificationUserExtraData(){
     foreach($this->usersToNotify as $userId => $reason){
       $this->usersToNotify[$userId] = $this->reasonExtraData[$reason];
