@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use App;
 use App\Http\Controllers\Relation\NotificationBuilder as NotificationBuilder;
 use App\Http\Controllers\Relation\UserStatementLogicScore as UserStatementLogicScore;
+use Mail;
 
 class OpinionController extends GenericController
 {
