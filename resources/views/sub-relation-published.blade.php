@@ -11,7 +11,9 @@
       "{{$statementText}}"
     </a>
   </p>
-  <p style="background-color: whitesmoke">
+  <br />
+  <hr />
+  <p >
     <small>This is an automated message. Do not reply</small>
   </p>
   </body>

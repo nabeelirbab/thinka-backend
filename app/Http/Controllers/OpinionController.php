@@ -188,7 +188,7 @@ class OpinionController extends GenericController
           'relationId' => $relationId,
           'statementText' => $statementText,
           'kebabStatement' => $kebabStatement,
-          'notificationMessage' => $this->userSession('username') . ' made an opinion on a relation that you are following',
+          'notificationMessage' => '<strong>' . $this->userSession('username') . '</strong> made an opinion on a relation that you are following',
           'opinionMessage' => $opinionMessage
         ];
         

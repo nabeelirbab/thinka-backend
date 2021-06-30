@@ -4,7 +4,7 @@
     Hello {{$username}},
   </p>
   <p >
-    {{$notificationMessage}}
+    {!!$notificationMessage!!}
   </p>
   
   <p>
@@ -15,8 +15,9 @@
   <p>
     {!! $opinionMessage !!}
   </p>
+  <br />
   <hr />
-  <p style="background-color: whitesmoke">
+  <p >
     <small>This is an automated message. Do not reply</small>
   </p>
   </body>
