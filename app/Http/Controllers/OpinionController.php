@@ -198,7 +198,7 @@ class OpinionController extends GenericController
             $data['username'] = $user['username'];
             Mail::send('opinion-created-notification', $data, function($message) use ($user) {
               $message->to($user['email'])
-              ->subject('Statement Tree Update');
+              ->subject('New Opinion on a Statement');
               $message->from('noreply@thinka.io','Thinka');
             });
           }
