@@ -179,14 +179,14 @@ class StatementController extends GenericController
           $relation->$column = $value;
         }
         $relation->save();
-        $notification = new App\Models\Notification();
-        $notification->createRelationUpdateNotification($relation->id, $this->userSession('id'), $notificationMessage);
-        $this->responseGenerator->setSuccess([
-          'id' => $relation->statement_id,
-          'relation' => [
-            'id' => $relation->id
-          ]
-        ]);
+        // $notification = new App\Models\Notification();
+        // $notification->createRelationUpdateNotification($relation->id, $this->userSession('id'), $notificationMessage);
+        // $this->responseGenerator->setSuccess([
+        //   'id' => $relation->statement_id,
+        //   'relation' => [
+        //     'id' => $relation->id
+        //   ]
+        // ]);
       }
     }
     
@@ -205,13 +205,13 @@ class StatementController extends GenericController
     if($validation->isValid($entry)){
       $genericUpdate = new GenericUpdate($this->tableStructure, $this->model);
       $resultObject['success'] = $genericUpdate->update($entry);
-      $notificationMessage = "";
-      if(isset($entry['scope_id'])){
-        $notificationMessage .= 'Scope has been changed.';
-      }else{
-        $notificationMessage .= 'Statement has been updated.';
-      }
-      (new App\Models\Notification())->createStatementUpdateNotification($entry['id'], null, $this->userSession('id'), $notificationMessage);
+      // $notificationMessage = "";
+      // if(isset($entry['scope_id'])){
+      //   $notificationMessage .= 'Scope has been changed.';
+      // }else{
+      //   $notificationMessage .= 'Statement has been updated.';
+      // }
+      // (new App\Models\Notification())->createStatementUpdateNotification($entry['id'], null, $this->userSession('id'), $notificationMessage);
     }else{
       $resultObject['fail'] = [
         "code" => 1,

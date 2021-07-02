@@ -366,36 +366,11 @@ class RelationController extends GenericController
     if($validation->isValid($entry)){
       $genericUpdate = new App\Generic\Core\GenericUpdate($this->tableStructure, $this->model);
       $resultObject['success'] = $genericUpdate->update($entry);
-      if(isset($entry['impact_amount'])){
-        $notification = new App\Models\Notification();
-        $notificationMessage = "Updated impact amount to ". $entry['impact_amount'] . "%";
-        $notification->createRelationUpdateNotification($entry['id'], $this->userSession('id'), $notificationMessage);
-        
-        // $relationSubsscribers = $this->getRelationSubscribers($relationModel->id);
-        
-        // $coAuthors = $relationSubsscribers['coauthors'];
-        // $bookmarkers = $relationSubsscribers['bookmarkers'];
-        // $users = (new App\Models\User())->select(['id', 'email', 'username'])->whereIn('id', $subscriberUserIds)->get()->toArray();
-        // $kebabStatement = preg_replace('/[[:space:]]+/', '-', strtolower($statementText));
-        // $data = [
-        //   'relationId' => $subRelationId,
-        //   'notificationMessage' => $message,
-        //   'parentRelationId' => $parentRelationId,
-        //   'statementText' => $statementText,
-        //   'kebabStatement' => $kebabStatement
-        // ];
-        // if(config('app.MAIL_MAILER') === 'smtp'){
-        //   foreach($users as $user){
-        //     $data['username'] = $user['username'];
-        //     Mail::send('sub-relation-published', $data, function($message) use ($user) {
-        //       $message->to($user['email'])
-        //       ->subject('Statement Tree Update');
-        //       $message->from('noreply@thinka.io','Thinka');
-        //     });
-        //   }
-        // }
-
-      }
+      // if(isset($entry['impact_amount'])){
+      //   $notification = new App\Models\Notification();
+      //   $notificationMessage = "Updated impact amount to ". $entry['impact_amount'] . "%";
+      //   $notification->createRelationUpdateNotification($entry['id'], $this->userSession('id'), $notificationMessage);
+      // }
       $this->responseGenerator->addDebug("relation id", $entry['id']);
     }else{
       $resultObject['fail'] = [
