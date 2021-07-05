@@ -11,6 +11,7 @@ use App\Generic\GenericController;
 use App\Generic\Core\GenericCreate;
 use App\Generic\Core\GenericFormValidation;
 use Mail;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends GenericController
 {
@@ -265,6 +266,62 @@ class UserController extends GenericController
           "message" => "Cannot delete user"
         ]);
       }
+      return $this->responseGenerator->generate();
+    }
+    public function activityHistory(Request $request){
+      $userId = $request->input('user_id');
+      $user = (new App\Models\User())->select(['id', 'username'])
+        ->with([
+          'user_basic_information' => function($query){
+            $query->select(['id', 'user_id', 'first_name', 'last_name']);
+          }
+        ])->find($userId);
+      $relationsQuery = (new App\Models\Relation())
+        ->select(['id', 'relations.user_id', DB::raw("'relation' as event_type"), DB::raw("published_at as event_date")])
+        ->whereNotNull('published_at')
+        ->where('user_id', $userId)
+        ->orderBy('published_at', 'desc')
+        ->limit(10);
+      $opinionsQuery = (new App\Models\Opinion())
+        ->select(['opinions.id', 'opinions.user_id', DB::raw("'opinion' as event_type"), DB::raw("opinions.updated_at as event_date")])
+        ->leftJoin('relations', 'relations.id', '=', 'opinions.relation_id')
+        ->where('opinions.user_id', $userId)
+        ->whereNotNull('relations.published_at')
+        ->orderBy('opinions.updated_at', 'desc')
+        ->limit(10);
+      $events = $opinionsQuery->union($relationsQuery)->orderBy('event_date', 'desc')->limit(10)->get()->toArray();
+      $relationIdList = [];
+      $relationLookUp = [];
+      $opinionIdList = [];
+      $opinionLookUp = [];
+      foreach($events as $key => $event){
+        if($event['event_type'] === 'relation'){
+          $relationIdList[] = $event['id'];
+          $relationLookUp[$event['id']] = $key;
+        }else{
+          $opinionIdList[] = $event['id'];
+          $opinionLookUp[$event['id']] = $key;
+        }
+      }
+      $relations = (new App\Models\Relation())
+        ->with(['statement', 'virtual_relation', 'virtual_relation.statement'])
+        ->whereIn('id', $relationIdList)->get()->toArray();
+      $opinions = (new App\Models\Opinion())
+        ->with(['relation', 'relation.statement'])
+        ->whereIn('id', $opinionIdList)->get()->toArray();
+      foreach($relations as $relation){
+        $index = $relationLookUp[$relation['id']];
+        $events[$index]['payload'] = $relation;
+      }
+      foreach($opinions as $opinion){
+        $index = $opinionLookUp[$opinion['id']];
+        $events[$index]['payload'] = $opinion;
+      }
+      $result = [
+        'events' => $events,
+        'user' => $user
+      ];
+      $this->responseGenerator->setSuccess($result);
       return $this->responseGenerator->generate();
     }
 }

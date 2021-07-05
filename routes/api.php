@@ -91,6 +91,7 @@ $customAPIResources = [
   'user/request-change-password',
   'user/register',
   'user/confirm-change-password',
+  'user/activity-history',
   'statement/retrieve-tree',
   'statement/update-relation',
   'relation/retrieve-tree',
