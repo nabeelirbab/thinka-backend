@@ -86,6 +86,7 @@ $apiResource = [
   'notification-user',
   'opinion',
   'context',
+  'user-report',
 ];
 $customAPIResources = [
   'user/request-change-password',
