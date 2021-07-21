@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Generic\GenericController;
 use App;
+use Mail;
 class UserReportController extends GenericController
 {
     function __construct(){
@@ -22,7 +23,7 @@ class UserReportController extends GenericController
         $resultObject = $this->createUpdateEntry($requestData);
         if($resultObject['success'] && config('app.MAIL_MAILER') === 'smtp'){
             $this->responseGenerator->addDebug('MAIL_MAILERPass', config('app.MAIL_MAILER'));
-            $user = (new App\Models\User())->find($this->userSession('id'))->get()->toArray();
+            $user = (new App\Models\User())->find($this->userSession('id'));
             $data = [
                 'username' => $user->username,
                 'email' => $user->email,
