@@ -187,7 +187,7 @@ class GenericController extends Controller
           "note" => $remarks
         ];
         $client = new Client(); //GuzzleHttp\Client
-          $result = $client->request('POST', env('FILE_SERVER').'/v1/get-ticket', [
+          $result = $client->request('POST', config('app.FILE_SERVER').'/v1/get-ticket', [
           'json' => $param
         ]);
         $result = json_decode((string)$result->getBody(), true);
@@ -195,12 +195,13 @@ class GenericController extends Controller
         return $resultObject;
       } catch (GuzzleException $e) {
         if(!$e->getResponse()){
-          $this->responseGenerator->addDebug('linkgetenv', getenv('FILE_SERVER').'/v1/get-ticket');
+          $this->responseGenerator->addDebug('linkgetenv', config('app.FILE_SERVER').'/v1/get-ticket');
           $this->responseGenerator->addDebug('linkenv', env('FILE_SERVER').'/v1/get-ticket');
         }else if($e->getResponse()->getStatusCode() == 422){ // validation error
           $response = json_decode((string)$e->getResponse()->getBody(), true);
           $this->responseGenerator->setFail(['code' => 422, "message" => $response]);
         }
+        $response = json_decode((string)$e->getResponse()->getBody(), true);
         return false;
       }
     }

@@ -55,7 +55,7 @@ class AuthController extends Controller
 
           return response()->json(['error' => 'Unauthorized: ' . json_encode($request->all())], 401);
       }
-      $userModel = (new App\Models\User())->with('user_basic_information')->find((auth()->user())['id']);
+      $userModel = (new App\Models\User())->with(['user_basic_information', 'user_profile_photo'])->find((auth()->user())['id']);
       return response()->json(["data" => $userModel]);
     }
     /**

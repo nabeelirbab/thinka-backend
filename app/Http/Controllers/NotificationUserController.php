@@ -17,6 +17,10 @@ class NotificationUserController extends GenericController
                 "user_basic_information" => [
                     'validation_required' => false,
                     "is_child" => false,
+                ],
+                "user_profile_photo" => [
+                    'validation_required' => false,
+                    "is_child" => false,
                 ]
             ]
         ];

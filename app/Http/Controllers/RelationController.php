@@ -91,6 +91,10 @@ class RelationController extends GenericController
             "user_basic_information" => [
               'validation_required' => false,
               "is_child" => false,
+            ],
+            "user_profile_photo" => [
+              'validation_required' => false,
+              "is_child" => false,
             ]
           ]
         ],
@@ -205,6 +209,7 @@ class RelationController extends GenericController
       'statement',
       'user',
       'user.user_basic_information',
+      
       'user_opinion',
       'user_opinion.opinion_calculated_column',
       'user_opinions',
@@ -227,7 +232,8 @@ class RelationController extends GenericController
       $with = array_merge($with, [
         'logic_tree',
         'parent_relation',
-        'parent_relation.statement'
+        'parent_relation.statement',
+        'user.user_profile_photo',
       ]);
       $relationModel = $relationModel->whereIn('id', $relationIds);
     }else{

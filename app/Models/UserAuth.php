@@ -34,7 +34,7 @@ class UserAuth extends Authenticatable implements JWTSubject
    */
   public function getJWTCustomClaims()
   {
-    $companyUser = (new CompanyUser())->with('user_basic_information')->select(['company_id', 'user_id'])->where('user_id', $this->id)->orderBy('created_at', 'DESC')->get()->toArray();
+    $companyUser = (new CompanyUser())->with(['user_basic_information', 'user_profile_photo'])->select(['company_id', 'user_id'])->where('user_id', $this->id)->orderBy('created_at', 'DESC')->get()->toArray();
     $claims = [
       'company_id' => NULL,
       'roles' => NULL
@@ -42,6 +42,10 @@ class UserAuth extends Authenticatable implements JWTSubject
     if(count($companyUser)){
       $companyID = $companyUser[0]['company_id'];
       $userRole = array_fill_keys(collect((new UserRole())->select(['role_id'])->where('user_id', $this->id)->where('company_id', $companyID)->get()->toArray())->pluck('role_id')->toArray(), true);
+      $companyUser[0]['user_basic_information']['profile_photo_file_name'] = null;
+      if($companyUser[0]['user_profile_photo']){
+        $companyUser[0]['user_basic_information']['profile_photo_file_name'] = $companyUser[0]['user_profile_photo']['file_name'];
+      }
       $claims =[
         'company_id' => $companyID,
         'roles' => $userRole,

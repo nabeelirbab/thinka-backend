@@ -90,6 +90,7 @@ $apiResource = [
 ];
 $customAPIResources = [
   'user/request-change-password',
+  'user/change-profile-photo',
   'user/register',
   'user/confirm-change-password',
   'user/activity-history',

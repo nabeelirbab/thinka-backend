@@ -323,4 +323,61 @@ class UserController extends GenericController
       $this->responseGenerator->setSuccess($result);
       return $this->responseGenerator->generate();
     }
+    public function changeProfilePhoto(Request $request){
+      $request = $request->all();
+      
+      if(isset($request['is_request'])){
+        return $this->requestChangeProfilePhoto($request);
+      }else{ // update user profile photo
+        $validator = Validator::make($request, [
+          "file_name" => "required|max:50",
+        ]);
+        if($validator->fails()){
+          $this->responseGenerator->setFail([
+            "code" => 1,
+            "message" => $validator->errors()->toArray()
+          ]);
+          return $this->responseGenerator->generate();
+        }
+        (new App\Models\UserProfilePhoto())->where('user_id', $this->userSession('id'))->delete();
+        $newUserProfilePhoto = (new App\Models\UserProfilePhoto());
+        $newUserProfilePhoto->user_id = $this->userSession('id');
+        $newUserProfilePhoto->file_name = $request['file_name'];
+        if($newUserProfilePhoto->save()){
+          $this->responseGenerator->setSuccess([
+            "id" => $newUserProfilePhoto->id
+          ]);
+        }else{
+          $this->responseGenerator->setFail([
+            "code" => 2,
+            "message" => 'Failed to change profile photo'
+          ]);
+        }
+        return $this->responseGenerator->generate();
+      }
+    }
+    private function requestChangeProfilePhoto($request){
+      $result = [];
+      $validator = Validator::make($request, [
+        "cropped_picture.size" => "required|numeric",
+        'cropped_picture.type' => "required|in:png,jpeg"
+      ]);
+      if($validator->fails()){
+        $this->responseGenerator->setFail([
+          "code" => 1,
+          "message" => $validator->errors()->toArray()
+        ]);
+        return $this->responseGenerator->generate();
+      }
+      $result['upload_ticket'] = $this->requestUploadTicket(1, 'Profile Picture of usesr#' . $this->userSession('id'));
+      if($result['upload_ticket']){
+        $this->responseGenerator->setSuccess($result);
+      }else{
+        $this->responseGenerator->setFail([
+          "code" => 2,
+          "message" => "Failed to create upload ticket" . $result['upload_ticket']
+        ]);
+      }
+      return $this->responseGenerator->generate();
+    }
 }

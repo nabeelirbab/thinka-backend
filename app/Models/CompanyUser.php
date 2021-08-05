@@ -19,4 +19,7 @@ class CompanyUser extends GenericModel
   public function user_basic_information(){
     return $this->belongsTo('App\Models\UserBasicInformation', 'user_id', 'user_id');
   }
+  public function user_profile_photo(){
+    return $this->hasOne('App\Models\UserProfilePhoto', 'user_id', 'user_id');
+  }
 }

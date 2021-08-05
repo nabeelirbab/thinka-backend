@@ -34,6 +34,9 @@ class User extends GenericModel
     public function user_basic_information(){
       return $this->hasOne('App\Models\UserBasicInformation');
     }
+    public function user_profile_photo(){
+      return $this->hasOne('App\Models\UserProfilePhoto');
+    }
     /**
      * The attributes that are mass assignable.
      *

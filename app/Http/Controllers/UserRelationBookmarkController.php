@@ -37,7 +37,14 @@ class UserRelationBookmarkController extends GenericController
               'validation_required' => false
             ],
             'user' => [
-              'validation_required' => false
+              'validation_required' => false,
+              'foreign_tables' => [
+                "user_profile_photo" => [
+                  
+                  'validation_required' => false,
+                  "is_child" => false,
+                ]
+              ]
             ],
           ]
         ]
