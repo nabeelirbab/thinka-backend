@@ -21,7 +21,8 @@ class RelationController extends GenericController
     ],
     'user' => [
       'select' => [
-        'id', 'username',
+        'id',
+        'username',
         'user_basic_information' => [
           'select' => ['user_id', 'first_name', 'last_name']
         ]
@@ -32,21 +33,36 @@ class RelationController extends GenericController
         'opinion_calculated_column' => [
           'select' => ['id', 'score_relation', 'score_statement']
         ],
-        'id', 'user_id', 'relation_id', 'confidence', 'type'
+        'id',
+        'user_id',
+        'relation_id',
+        'confidence',
+        'type'
       ]
     ],
-    'parent_relation_id', 'logic_tree_id', 'statement_id', 'relation_type_id', 'relevance_window', 'user_id', 'published_at', 'logic_tree_id', 'impact', 'impact_amount', 'created_at', 'virtual_relation_id'
+    'parent_relation_id',
+    'logic_tree_id',
+    'statement_id',
+    'relation_type_id',
+    'relevance_window',
+    'user_id',
+    'published_at',
+    'logic_tree_id',
+    'impact',
+    'impact_amount',
+    'created_at',
+    'virtual_relation_id'
   ];
-  function __construct(){
+  function __construct()
+  {
     $this->model = new App\Models\Relation();
     $recursiveRelationForeignTable = $this->generateRecursiveRelationForeignTable(1);
     $this->tableStructure = [
-      'columns' => [
-      ],
+      'columns' => [],
       'foreign_tables' => [
         'parent_relation' => [
           "true_table" => 'relations',
-          "is_child" => false, 
+          "is_child" => false,
           "validation_required" => false,
           'foreign_tables' => [
             'statement' => [
@@ -65,7 +81,7 @@ class RelationController extends GenericController
         ],
         'user_opinion' => [
           "true_table" => 'opinions',
-          "is_child" => true, 
+          "is_child" => true,
           'foreign_tables' => [
             'opinion_calculated_column' => [
               "is_child" => true,
@@ -82,7 +98,7 @@ class RelationController extends GenericController
           ]
         ],
         'logic_tree' => [
-          "is_child" => false, 
+          "is_child" => false,
           'validation_required' => false
         ],
         "user" => [
@@ -115,7 +131,7 @@ class RelationController extends GenericController
         ],
         'root_parent_relation' => [
           "true_table" => 'relations',
-          "is_child" => false, 
+          "is_child" => false,
           "validation_required" => false,
           'foreign_tables' => [
             'statement' => [
@@ -125,8 +141,8 @@ class RelationController extends GenericController
         ],
       ]
     ];
-    $this->retrieveCustomQueryModel = function($queryModel, &$leftJoinedTable){
-      $queryModel = $queryModel->where(function($query){
+    $this->retrieveCustomQueryModel = function ($queryModel, &$leftJoinedTable) {
+      $queryModel = $queryModel->where(function ($query) {
         $query->where('relations.user_id', $this->userSession('id'));
         $query->orWhereNotNull('relations.published_at');
       });
@@ -134,32 +150,33 @@ class RelationController extends GenericController
     };
     $this->initGenericController();
   }
-  public function retrieveTree(Request $request){
+  public function retrieveTree(Request $request)
+  {
     $requestArray = $request->all();
     $validator = Validator::make($requestArray, [
       "relation_id" => "required|exists:relations,id"
     ]);
-    if($validator->fails()){
+    if ($validator->fails()) {
       $this->responseGenerator->setFail([
         "code" => 1,
         "message" => $validator->errors()->toArray()
-      ]); 
+      ]);
       return $this->responseGenerator->generate();
     }
     $relationId = $requestArray['relation_id'];
     $userId = $this->userSession('id');
     $relationModel = (new App\Models\Relation())->find($relationId);
-    if($relationModel->published_at !== null || $relationModel->user_id * 1 === $userId * 1){
+    if ($relationModel->published_at !== null || $relationModel->user_id * 1 === $userId * 1) {
       $relation = $this->recursiveRetrieveTree([$relationId]);
-      if($relation[0]['statement_id']){
+      if ($relation[0]['statement_id']) {
         $relation[0]['sub_relation_statement_id_list'][] = $relation[0]['statement_id'];
       }
       $relation[0]['user_statement_logic_scores'] = (new UserStatementLogicScore())->calculateUserStatementLogicScore($relation[0]['sub_relation_statement_id_list']);
       $parentRelationUserFollowings = $relation[0]['parent_relation_id'] ? $this->getParentRelationUserFollowing($relation[0]['parent_relation_id']) : [];
       $relation[0]['parent_relation_user_following'] = [];
-      if(count($parentRelationUserFollowings)){
+      if (count($parentRelationUserFollowings)) {
         $userIdList = [];
-        foreach($parentRelationUserFollowings as $userId => $value){
+        foreach ($parentRelationUserFollowings as $userId => $value) {
           $userIdList[] = $userId * 1;
         }
         $relation[0]['parent_relation_user_following'] = (new App\Models\User())->with(['user_basic_information'])->whereIn('id', $userIdList)->get()->toArray();
@@ -167,7 +184,7 @@ class RelationController extends GenericController
       $this->responseGenerator->addDebug('parentRelationUserFollowings', $parentRelationUserFollowings);
       $this->responseGenerator->setSuccess($relation);
       return $this->responseGenerator->generate();
-    }else{
+    } else {
       $this->responseGenerator->setFail([
         "code" => 1,
         "message" => 'Statement is not published'
@@ -175,33 +192,35 @@ class RelationController extends GenericController
       return $this->responseGenerator->generate();
     }
   }
-  private function getParentRelationUserFollowing($relationId){
-    if($relationId){
-      $relation = (new App\Models\Relation())->find($relationId)->with(['all_user_relation_bookmarks' => function($query){
+  private function getParentRelationUserFollowing($relationId)
+  {
+    if ($relationId) {
+      $relation = (new App\Models\Relation())->find($relationId)->with(['all_user_relation_bookmarks' => function ($query) {
         $query->with(['user']);
       }])->get()->toArray();
-      if(count($relation)){
+      if (count($relation)) {
         $relation = $relation[0];
         $users = [];
         $users[$relation['user_id']] = true;
-        foreach($relation['all_user_relation_bookmarks'] as $userRelationBookmark){
+        foreach ($relation['all_user_relation_bookmarks'] as $userRelationBookmark) {
           $users[$userRelationBookmark['user_id']] = true;
         }
         $parentRelationUserFollowing = [];
-        if($relation['parent_relation_id']){
+        if ($relation['parent_relation_id']) {
           $parentRelationUserFollowing = $this->getParentRelationUserFollowing($relation['parent_relation_id']);
         }
-        foreach($parentRelationUserFollowing as $userIdKey => $value){
+        foreach ($parentRelationUserFollowing as $userIdKey => $value) {
           $users[$userIdKey] = $value;
         }
         return $users; // array_merge($users, $parentRelationUserFollowing);
       }
-    }else{
+    } else {
       return [];
     }
   }
-  public function recursiveRetrieveTree($relationIds, $currentDeep = 0, $deep = 20){ // if deep is 0, relationsIds containes the parent relation ids
-    if(count($relationIds) == 0){
+  public function recursiveRetrieveTree($relationIds, $currentDeep = 0, $deep = 20)
+  { // if deep is 0, relationsIds containes the parent relation ids
+    if (count($relationIds) == 0) {
       return [];
     }
     $with = [
@@ -209,26 +228,26 @@ class RelationController extends GenericController
       'statement',
       'user',
       'user.user_basic_information',
-      
+
       'user_opinion',
       'user_opinion.opinion_calculated_column',
       'user_opinions',
       'user_opinions.opinion_calculated_column',
-      'all_user_relation_bookmarks' => function($query){
+      'all_user_relation_bookmarks' => function ($query) {
         $query->with(['user']);
       },
-      'all_user_sub_relation_bookmarks' => function($query){
+      'all_user_sub_relation_bookmarks' => function ($query) {
         $query->with(['user']);
       },
-      'all_user_sub_relation_bookmarks' => function($query){
+      'all_user_sub_relation_bookmarks' => function ($query) {
         $query->with(['user']);
       },
-      'user_relation_context_locks' => function($query){
+      'user_relation_context_locks' => function ($query) {
         $query->where('user_id', $this->userSession('id'));
       }
     ];
     $relationModel = (new App\Models\Relation());
-    if($currentDeep == 0){ // main relation if the current deep is zero
+    if ($currentDeep == 0) { // main relation if the current deep is zero
       $with = array_merge($with, [
         'logic_tree',
         'parent_relation',
@@ -236,29 +255,29 @@ class RelationController extends GenericController
         'user.user_profile_photo',
       ]);
       $relationModel = $relationModel->whereIn('id', $relationIds);
-    }else{
+    } else {
       $relationModel = $relationModel->whereIn('parent_relation_id', $relationIds);
     }
-    $relationModel = $relationModel->where(function($query){
+    $relationModel = $relationModel->where(function ($query) {
       $query->where('published_at', '!=', NULL);
       $query->orWhere('user_id', $this->userSession('id'));
     });
     $relationModel = $relationModel->with($with);
     $relations = $relationModel->get()->toArray();
-    if($currentDeep < $deep){
+    if ($currentDeep < $deep) {
       ++$currentDeep;
       $relationIdLookUp = [];
       $relationIdList = [];
       $virtualRelationParentRelationLookUp = []; // container object where value is array of relation index where virtual_relation belongs
       $virtualRelationIdList = [];
-      foreach($relations as $relationKey => $relation){
+      foreach ($relations as $relationKey => $relation) {
         $relationIdList[] = $relation['id'] * 1;
         $relationIdLookUp[$relation['id']] = $relationKey;
         $relations[$relationKey]['relations'] = [];
         $relations[$relationKey]['sub_relation_statement_id_list'] = array(); // object of statement ids, contains all the statement ids of the sub relations
         $relations[$relationKey]['virtual_relation'] = null;
-        if($relation['virtual_relation_id'] != null){
-          if(!isset($virtualRelationParentRelationLookUp[$relation['virtual_relation_id']])){
+        if ($relation['virtual_relation_id'] != null) {
+          if (!isset($virtualRelationParentRelationLookUp[$relation['virtual_relation_id']])) {
             $virtualRelationParentRelationLookUp[$relation['virtual_relation_id']] = [];
           }
           $virtualRelationIdList[] = $relation['virtual_relation_id'] * 1;
@@ -266,9 +285,9 @@ class RelationController extends GenericController
         }
       }
       $virtualRelations = $this->recursiveRetrieveTree($virtualRelationIdList, 0, $deep - $currentDeep);
-      foreach($virtualRelations as $virtualRelation){
-        foreach($virtualRelationParentRelationLookUp[$virtualRelation['id']] as $relationIndex){
-          if($virtualRelation['statement_id']){
+      foreach ($virtualRelations as $virtualRelation) {
+        foreach ($virtualRelationParentRelationLookUp[$virtualRelation['id']] as $relationIndex) {
+          if ($virtualRelation['statement_id']) {
             $relations[$relationIndex]['sub_relation_statement_id_list'][] = $virtualRelation['statement_id'];
           }
           $relations[$relationIndex]['sub_relation_statement_id_list'] = array_merge($relations[$relationIndex]['sub_relation_statement_id_list'], $virtualRelation['sub_relation_statement_id_list']);
@@ -277,9 +296,9 @@ class RelationController extends GenericController
         }
       }
       $subRelations = $this->recursiveRetrieveTree($relationIdList, $currentDeep);
-      foreach($subRelations as $subRelation){
+      foreach ($subRelations as $subRelation) {
         $parentRelationIndex = $relationIdLookUp[$subRelation['parent_relation_id']];
-        if($subRelation['statement_id']){
+        if ($subRelation['statement_id']) {
           $relations[$parentRelationIndex]['sub_relation_statement_id_list'][] = $subRelation['statement_id'];
         }
         $relations[$parentRelationIndex]['sub_relation_statement_id_list'] = array_merge($relations[$parentRelationIndex]['sub_relation_statement_id_list'], $subRelation['sub_relation_statement_id_list']);
@@ -289,27 +308,29 @@ class RelationController extends GenericController
     }
     return $relations;
   }
-  public function retrieve(Request $request){
+  public function retrieve(Request $request)
+  {
     $requestArray = $this->systemGenerateRetrieveParameter($request->all());
     $validator = Validator::make($requestArray, ["select" => "required|array|min:1"]);
-    if($validator->fails()){
+    if ($validator->fails()) {
       $this->responseGenerator->setFail([
         "code" => 1,
         "message" => $validator->errors()->toArray()
       ]);
       return $this->responseGenerator->generate();
     }
-    if(!$this->checkAuthenticationRequirement($this->basicOperationAuthRequired["retrieve"])){
+    if (!$this->checkAuthenticationRequirement($this->basicOperationAuthRequired["retrieve"])) {
       return $this->responseGenerator->generate();
     }
     $genericRetrieve = new GenericRetrieve($this->tableStructure, $this->model, $requestArray, $this->retrieveCustomQueryModel);
     $this->responseGenerator->setSuccess($genericRetrieve->executeQuery());
-    if($genericRetrieve->totalResult != null){
+    if ($genericRetrieve->totalResult != null) {
       $this->responseGenerator->setTotalResult($genericRetrieve->totalResult);
     }
     return $this->responseGenerator->generate();
   }
-  private function generateRecursiveRelationForeignTable($currentDeep, $deep = 10){
+  private function generateRecursiveRelationForeignTable($currentDeep, $deep = 10)
+  {
     $relations = [
       "foreign_column" => 'parent_relation_id',
       "validation_required" => false,
@@ -331,7 +352,7 @@ class RelationController extends GenericController
         ],
         'user_opinion' => [
           "true_table" => 'opinions',
-          "is_child" => true, 
+          "is_child" => true,
           'foreign_tables' => [
             'opinion_calculated_column' => [
               "is_child" => true,
@@ -354,13 +375,14 @@ class RelationController extends GenericController
         ]
       ]
     ];
-    if($currentDeep <= $deep){
+    if ($currentDeep <= $deep) {
       $relations['foreign_tables']['relations'] = $this->generateRecursiveRelationForeignTable(++$currentDeep);
     }
     return $relations;
   }
-  public function update(Request $request){
-    if(!$this->checkAuthenticationRequirement($this->basicOperationAuthRequired["update"])){
+  public function update(Request $request)
+  {
+    if (!$this->checkAuthenticationRequirement($this->basicOperationAuthRequired["update"])) {
       return $this->responseGenerator->generate();
     }
     $entry = $request->all();
@@ -369,7 +391,7 @@ class RelationController extends GenericController
       "fail" => false
     ];
     $validation = new App\Generic\Core\GenericFormValidation($this->tableStructure, "update");
-    if($validation->isValid($entry)){
+    if ($validation->isValid($entry)) {
       $genericUpdate = new App\Generic\Core\GenericUpdate($this->tableStructure, $this->model);
       $resultObject['success'] = $genericUpdate->update($entry);
       // if(isset($entry['impact_amount'])){
@@ -378,39 +400,39 @@ class RelationController extends GenericController
       //   $notification->createRelationUpdateNotification($entry['id'], $this->userSession('id'), $notificationMessage);
       // }
       $this->responseGenerator->addDebug("relation id", $entry['id']);
-    }else{
+    } else {
       $resultObject['fail'] = [
         "code" => 1,
         "message" => $validation->validationErrors
       ];
-
     }
     $this->responseGenerator->setSuccess($resultObject['success']);
     $this->responseGenerator->setFail($resultObject['fail']);
     return $this->responseGenerator->generate();
   }
-  public function publish(Request $request){
+  public function publish(Request $request)
+  {
     $validator = Validator::make($request->all(), [
       'id' => 'required|exists:relations,id',
       'published_at' => 'required',
       'sub_relations' => 'array',
       'sub_relations.*' => 'required|exists:relations,id'
     ]);
-    if($validator->fails()){
+    if ($validator->fails()) {
       $this->responseGenerator->setFail([
         "code" => 1,
         "message" => $validator->errors()->toArray()
       ]);
-    }else{
+    } else {
       $entry = $request->all();
       $relationModel = (new App\Models\Relation())->with(['statement'])->find($entry['id']);
-      if($relationModel->user_id === $this->userSession('id')){
+      if ($relationModel->user_id === $this->userSession('id')) {
         $publishedAt = $entry['published_at'] ? date('Y-m-d H:i:s') : null;
         $relationToNotifyList = array(); // contains object where key is the published/unpublished statements and the value is an array of parent ids
-        
+
         $this->recursivePublish($entry['id'], $publishedAt, $relationToNotifyList, 0);
         $this->responseGenerator->addDebug('$relationToNotifyList', $relationToNotifyList);
-        if($relationModel->parent_relation_id === null){
+        if ($relationModel->parent_relation_id === null) {
           $logicTreeModel = (new App\Models\LogicTree())->find($relationModel->logic_tree_id);
           $logicTreeModel->published_at = $publishedAt;
           $logicTreeModel->save();
@@ -418,36 +440,36 @@ class RelationController extends GenericController
         $userToNotify = array(); // object - key is user id
         $relationIds = array();
         $parentRelations = [];
-        if($relationModel->parent_relation_id){
+        if ($relationModel->parent_relation_id) {
           $parentRelations = $this->getParentRelations($relationModel->id);
-          foreach($parentRelations as $parentRelation){
+          foreach ($parentRelations as $parentRelation) {
             $userToNotify[$parentRelation['user_id']] = 1; // 1- co-author, 2 - bookmarkers
             $relationIds[] = $parentRelation['id'];
           }
         }
-        
-        foreach($relationToNotifyList as $relationToNotifyId => $relationToNotifyList){
+
+        foreach ($relationToNotifyList as $relationToNotifyId => $relationToNotifyList) {
           $userToNotify[$relationToNotifyList['user_id']] = 1; // 1- co-author, 2 - bookmarkers
           $relationIds[] = $relationToNotifyId;
         }
         $userRelationBookmarks = (new App\Models\UserRelationBookmark())->whereIn('relation_id', $relationIds)->get()->toArray();
-        foreach($userRelationBookmarks as $userRelationBookmark){
-          if(!isset($userToNotify[$userRelationBookmark['user_id']])){
-            $userToNotify[$userRelationBookmark['user_id']] = 2;// 1- co-author, 2 - bookmarkers
+        foreach ($userRelationBookmarks as $userRelationBookmark) {
+          if (!isset($userToNotify[$userRelationBookmark['user_id']])) {
+            $userToNotify[$userRelationBookmark['user_id']] = 2; // 1- co-author, 2 - bookmarkers
           }
         }
         $coAuthors = [];
         $bookmarkers = []; // users who bookmark
-        foreach($userToNotify as $userId => $type){
-          if($userId * 1 != $this->userSession('id') * 1){
-            if($type === 1){
+        foreach ($userToNotify as $userId => $type) {
+          if ($userId * 1 != $this->userSession('id') * 1) {
+            if ($type === 1) {
               $coAuthors[] = $userId;
-            }else{
+            } else {
               $bookmarkers[] = $userId;
             }
           }
         }
-        
+
         $this->notifySubscribers(
           2, // publish co author
           $entry['id'], // relation id of head relation being published
@@ -466,10 +488,10 @@ class RelationController extends GenericController
           $relationModel->parent_relation_id,
           $relationModel->statement->text
         );
-        
+
         // $this->notifyPublishedStatementParents($relationToNotifyId, $notificationMessage, $toNotifyRelationArray, $relationToNotifyList['users']); // notify parents authors and bookmarkers
         $this->responseGenerator->setSuccess(true);
-      }else{  
+      } else {
         $this->responseGenerator->setFail([
           "code" => 2,
           "message" => 'Not owner'
@@ -478,27 +500,28 @@ class RelationController extends GenericController
     }
     return $this->responseGenerator->generate();
   }
-  private function getRelationSubscribers($relationId){
+  private function getRelationSubscribers($relationId)
+  {
     $userToNotify = array(); // object - key is user id
     $relationIds = array();
     $parentRelations = $this->getParentRelations($relationId);
-    foreach($parentRelations as $parentRelation){
+    foreach ($parentRelations as $parentRelation) {
       $userToNotify[$parentRelation['user_id']] = 1; // 1- co-author, 2 - bookmarkers
       $relationIds[] = $parentRelation['id'];
     }
     $userRelationBookmarks = (new App\Models\UserRelationBookmark())->whereIn('relation_id', $relationIds)->get()->toArray();
-    foreach($userRelationBookmarks as $userRelationBookmark){
-      if(!isset($userToNotify[$userRelationBookmark['user_id']])){
-        $userToNotify[$userRelationBookmark['user_id']] = 2;// 1- co-author, 2 - bookmarkers
+    foreach ($userRelationBookmarks as $userRelationBookmark) {
+      if (!isset($userToNotify[$userRelationBookmark['user_id']])) {
+        $userToNotify[$userRelationBookmark['user_id']] = 2; // 1- co-author, 2 - bookmarkers
       }
     }
     $coAuthors = [];
     $bookmarkers = []; // users who bookmark
-    foreach($userToNotify as $userId => $type){
-      if($userId * 1 != $this->userSession('id') * 1){
-        if($type === 1){
+    foreach ($userToNotify as $userId => $type) {
+      if ($userId * 1 != $this->userSession('id') * 1) {
+        if ($type === 1) {
           $coAuthors[] = $userId;
-        }else{
+        } else {
           $bookmarkers[] = $userId;
         }
       }
@@ -508,12 +531,13 @@ class RelationController extends GenericController
       'bookmarkers' => $bookmarkers
     ];
   }
-  private function notifySubscribers($type, $subRelationId, $userId, $subscriberUserIds, $message, $parentRelationId, $statementText){
+  private function notifySubscribers($type, $subRelationId, $userId, $subscriberUserIds, $message, $parentRelationId, $statementText)
+  {
     (new App\Models\Notification())->createSubRelationUpdateNotification(
       $type,
       $subRelationId,
       $userId,
-      $subscriberUserIds, 
+      $subscriberUserIds,
       $message
     );
     $users = (new App\Models\User())->select(['id', 'email', 'username'])->whereIn('id', $subscriberUserIds)->get()->toArray();
@@ -525,71 +549,73 @@ class RelationController extends GenericController
       'statementText' => $statementText,
       'kebabStatement' => $kebabStatement
     ];
-    if(config('app.MAIL_MAILER') === 'smtp'){
-      foreach($users as $user){
+    if (config('app.MAIL_MAILER') === 'smtp') {
+      foreach ($users as $user) {
         $data['username'] = $user['username'];
-        Mail::send('sub-relation-published', $data, function($message) use ($user) {
+        Mail::send('sub-relation-published', $data, function ($message) use ($user) {
           $message->to($user['email'])
-          ->subject('Statement Tree Update');
-          $message->from('noreply@thinka.io','Thinka');
+            ->subject('Statement Tree Update');
+          $message->from('noreply@thinka.io', 'Thinka');
         });
       }
     }
   }
-  private function getParentRelations($relationId){
+  private function getParentRelations($relationId)
+  {
     $parentIds = [];
     $hasParent = true;
     $currentRelationId = $relationId;
-    do{
+    do {
       $relationModel = (new App\Models\Relation())->find($currentRelationId);
-      if($relationModel->id && $relationModel->parent_relation_id){
+      if ($relationModel->id && $relationModel->parent_relation_id) {
         $parentIds[] = [
           'id' => $relationModel->parent_relation_id,
           'user_id' => $relationModel->user_id
         ];
         $currentRelationId = $relationModel->parent_relation_id;
-      }else{
+      } else {
         $currentRelationId = null;
       }
-    }while($currentRelationId);
+    } while ($currentRelationId);
     return $parentIds;
   }
-  private function notifyPublishedStatementParents($publishedRelationId, $message, $parentIds, $userIds){ // publish and unpublish
+  private function notifyPublishedStatementParents($publishedRelationId, $message, $parentIds, $userIds)
+  { // publish and unpublish
     $userRelationBookmarks = (new App\Models\UserRelationBookmark())
       ->select(['user_id', 'relation_id'])
       ->whereIn('relation_id', $parentIds)
       ->get()->toArray();
-    $this->responseGenerator->addDebug('$userRelationBookmarks'.$publishedRelationId, $userRelationBookmarks);
+    $this->responseGenerator->addDebug('$userRelationBookmarks' . $publishedRelationId, $userRelationBookmarks);
     $usersToNotify = array_merge($userRelationBookmarks, $userIds);
     $notificationUsers = (new App\Models\Notification())->createSubRelationUpdateNotification($publishedRelationId, $this->userSession('id'), $userRelationBookmarks, $message);
     $userIds = [];
-    foreach($notificationUsers as $notificationUser){
+    foreach ($notificationUsers as $notificationUser) {
       $userIds[] = $notificationUser['user_id'];
     }
-    
   }
-  public function join(Request $request){
+  public function join(Request $request)
+  {
     $validator = Validator::make($request->all(), [
       'parent_relation_id' => 'required|exists:relations,id',
       'relation_id' => 'required|exists:relations,id',
       'relation_type_id' => 'required|exists:relation_types,id',
       'impact_amount' => 'required',
     ]);
-    if($validator->fails()){
+    if ($validator->fails()) {
       $this->responseGenerator->setFail([
         "code" => 1,
         "message" => $validator->errors()->toArray()
       ]);
-    }else{
+    } else {
       $entry = $request->all();
       $relationModel = (new App\Models\Relation())->find($entry['relation_id']);
       $parentRelationModel = (new App\Models\Relation())->find($entry['parent_relation_id']);
-      if($relationModel->logic_tree_id === $parentRelationModel->logic_tree_id){
+      if ($relationModel->logic_tree_id === $parentRelationModel->logic_tree_id) {
         $this->responseGenerator->setFail([
           "code" => 3,
           "message" => 'Circular relationss not allowed'
         ]);
-      }else if($relationModel->user_id === $this->userSession('id')){
+      } else if ($relationModel->user_id === $this->userSession('id')) {
         $relationModel->parent_relation_id = $entry['parent_relation_id'];
         $relationModel->relevance_window = $entry['relevance_window'];
         $relationModel->relation_type_id = $entry['relation_type_id'];
@@ -602,7 +628,7 @@ class RelationController extends GenericController
           'id' => $entry['relation_id'],
           'parent_relation_id' => $entry['relation_id'],
         ]);
-      }else{
+      } else {
         $this->responseGenerator->setFail([
           "code" => 2,
           "message" => 'Not owner'
@@ -611,7 +637,8 @@ class RelationController extends GenericController
     }
     return $this->responseGenerator->generate();
   }
-  public function link(Request $request){
+  public function link(Request $request)
+  {
     $validator = Validator::make($request->all(), [
       'parent_relation_id' => 'required|exists:relations,id',
       'virtual_relation_id' => 'required|exists:relations,id',
@@ -620,16 +647,16 @@ class RelationController extends GenericController
       'logic_tree_id' => 'required|exists:logic_trees,id',
       'is_published' => 'required',
     ]);
-    if($validator->fails()){
+    if ($validator->fails()) {
       $this->responseGenerator->setFail([
         "code" => 1,
         "message" => $validator->errors()->toArray()
       ]);
-    }else{
+    } else {
       $entry = $request->all();
       $virtualRelationModel = (new App\Models\Relation())->find($entry['virtual_relation_id']);
       $parentRelationModel = (new App\Models\Relation())->find($entry['parent_relation_id']);
-      if($virtualRelationModel->published_at || $virtualRelationModel->user_id == $this->userSession('id')){
+      if ($virtualRelationModel->published_at || $virtualRelationModel->user_id == $this->userSession('id')) {
         $relationModel = (new App\Models\Relation());
         $relationModel->virtual_relation_id = $entry['virtual_relation_id'];
         $relationModel->parent_relation_id = $entry['parent_relation_id'];
@@ -642,7 +669,7 @@ class RelationController extends GenericController
         $this->responseGenerator->setSuccess([
           'id' => $relationModel->id,
         ]);
-      }else{
+      } else {
         $this->responseGenerator->setFail([
           "code" => 2,
           "message" => 'Cannot link unpublished relations'
@@ -651,60 +678,62 @@ class RelationController extends GenericController
     }
     return $this->responseGenerator->generate();
   }
-  private function recursivePublish($relationId, $publishedAt, &$relationToNotifyList, $deep = 0){
-    $relation = (new App\Models\Relation())->with(['relations' => function($query){
+  private function recursivePublish($relationId, $publishedAt, &$relationToNotifyList, $deep = 0)
+  {
+    $relation = (new App\Models\Relation())->with(['relations' => function ($query) {
       $query->where('user_id', $this->userSession('id'));
     }, 'virtual_relation'])->find($relationId);
     $relationResult = $relation->get()->toArray();
-    if($publishedAt && $relation['virtual_relation'] && !$relation['virtual_relation']['published_at']){ // the virtual relation is not yet published
+    if ($publishedAt && $relation['virtual_relation'] && !$relation['virtual_relation']['published_at']) { // the virtual relation is not yet published
       return false;
     }
     $subRelations = ($relation->toArray())['relations'];
     $message = null;
-    if($publishedAt && !$relation->published_at){ // publish and relation not yet published
+    if ($publishedAt && !$relation->published_at) { // publish and relation not yet published
       $relation->published_at = $publishedAt;
       $message = 'Statement that you bookmarked has been published';
-    }else if(!$publishedAt && $relation->published_at){ // unpublish and relation is already published
+    } else if (!$publishedAt && $relation->published_at) { // unpublish and relation is already published
       $relation->published_at = null;
       $message = 'Statement that you bookmarked has been unpublished';
     }
-    if($message){
+    if ($message) {
       $relation->save();
       $relationToNotifyList[$relationId] = [
         'user_id' => $relationResult[0]['user_id'],
         'deep' => $deep
       ];
     }
-    if(count($subRelations)){
-      foreach($subRelations as $subRelation){
+    if (count($subRelations)) {
+      foreach ($subRelations as $subRelation) {
         $this->recursivePublish($subRelation['id'], $publishedAt, $relationToNotifyList, $deep + 1);
       }
     }
     return true;
   }
-  public function deletePartial(Request $request){
+  public function deletePartial(Request $request)
+  {
     $validator = Validator::make($request->all(), [
       'id' => 'required|exists:relations,id',
     ]);
-    if($validator->fails()){
+    if ($validator->fails()) {
       $this->responseGenerator->setFail([
         "code" => 1,
         "message" => $validator->errors()->toArray()
       ]);
-    }else{
+    } else {
       $entry = $request->all();
-      $with = [ 
-        'relations' => function($query){
+      $with = [
+        'relations' => function ($query) {
           $query->with('statement');
         }
       ];
       $relationModel = ((new App\Models\Relation())->with($with)->where('id', $entry['id'])->where('user_id', $this->userSession('id'))->get());
-      if(count($relationModel)){
+      if (count($relationModel)) {
         $relationModel = $relationModel[0];
         $subRelations = ($relationModel->toArray())['relations'];
-        foreach($subRelations as $subRelation){
+        foreach ($subRelations as $subRelation) {
           $subRelationModel = (new App\Models\Relation())->find($subRelation['id']);
-          if($subRelationModel){
+          if ($subRelationModel) {
             $subRelationModel->former_parent_relation_id = $subRelationModel->parent_relation_id;
             $subRelationModel->parent_relation_id = null;
             $logicTreeId = $this->createLogicTree($subRelation);
@@ -714,7 +743,7 @@ class RelationController extends GenericController
         }
         $relationModel->delete();
         $this->responseGenerator->setSuccess(true);
-      }else{
+      } else {
         $this->responseGenerator->setFail([
           "code" => 2,
           "message" => "Statement not found or you are not the author"
@@ -723,27 +752,28 @@ class RelationController extends GenericController
     }
     return $this->responseGenerator->generate();
   }
-  public function deleteClip(Request $request){
+  public function deleteClip(Request $request)
+  {
     $validator = Validator::make($request->all(), [
       'id' => 'required|exists:relations,id',
     ]);
-    if($validator->fails()){
+    if ($validator->fails()) {
       $this->responseGenerator->setFail([
         "code" => 1,
         "message" => $validator->errors()->toArray()
       ]);
-    }else{
+    } else {
       $entry = $request->all();
       $relationModel = ((new App\Models\Relation())->with(['statement'])->where('id', $entry['id'])->where('user_id', $this->userSession('id'))->get());
       // TODO create new logic tree?
-      if(count($relationModel)){
+      if (count($relationModel)) {
         $relationModel[0]->former_parent_relation_id = $relationModel[0]->parent_relation_id;
         $relationModel[0]->parent_relation_id = null;
         $updateResult = $relationModel[0]->save();
         $logicTreeId = $this->createLogicTree($relationModel[0]);
         $this->recursiveUpdate($entry['id'], $logicTreeId);
         $this->responseGenerator->setSuccess($updateResult);
-      }else{
+      } else {
         $this->responseGenerator->setFail([
           "code" => 2,
           "message" => "Statement not found or you are not the author"
@@ -752,17 +782,19 @@ class RelationController extends GenericController
     }
     return $this->responseGenerator->generate();
   }
-  private function recursiveUpdate($relationId, $newLogicTreeId){
+  private function recursiveUpdate($relationId, $newLogicTreeId)
+  {
     $relation = (new App\Models\Relation())->with(['all_relations'])->find($relationId);
     $subRelations = ($relation->toArray())['all_relations'];
     $relation->logic_tree_id = $newLogicTreeId;
     $relation->save();
-    foreach($subRelations as $key => $subRelation){
+    foreach ($subRelations as $key => $subRelation) {
       $subRelations[$key] = $this->recursiveUpdate($subRelation['id'], $newLogicTreeId);
     }
     return $subRelations;
   }
-  private function createLogicTree($relation){
+  private function createLogicTree($relation)
+  {
     $logicTreeModel = new App\Models\LogicTree();
     $logicTreeModel->user_id = $relation['user_id'];
     $logicTreeModel->name = $relation['statement']['text'];
@@ -771,23 +803,24 @@ class RelationController extends GenericController
     $logicTreeModel->save();
     return $logicTreeModel->id;
   }
-  public function deleteAll(Request $request){
+  public function deleteAll(Request $request)
+  {
     $validator = Validator::make($request->all(), [
       'id' => 'required|exists:relations,id',
     ]);
-    if($validator->fails()){
+    if ($validator->fails()) {
       $this->responseGenerator->setFail([
         "code" => 1,
         "message" => $validator->errors()->toArray()
       ]);
-    }else{
+    } else {
       $entry = $request->all();
       $relationModel = ((new App\Models\Relation())->where('id', $entry['id'])->where('user_id', $this->userSession('id'))->get())->toArray();
       (new App\Models\Notification())->createRelationUpdateNotification($entry['id'], $this->userSession('id'), 'Statement has been deleted together with its supporting and counter statements');
-      if(count($relationModel)){
+      if (count($relationModel)) {
         $this->recursiveDeleteAll($entry['id']);
         $this->responseGenerator->setSuccess(true);
-      }else{
+      } else {
         $this->responseGenerator->setFail([
           "code" => 2,
           "message" => "Statement not found or you are not the author"
@@ -796,23 +829,26 @@ class RelationController extends GenericController
     }
     return $this->responseGenerator->generate();
   }
-  private function recursiveDeleteAll($relationId){
+  private function recursiveDeleteAll($relationId)
+  {
     $relation = (new App\Models\Relation())->with(['relations'])->find($relationId);
     $subRelations = ($relation->toArray())['relations'];
     (new App\Models\Notification())->createRelationUpdateNotification($relationId, $this->userSession('id'), 'Statement has been deleted');
     $userRelationBookmarks = (new App\Models\UserRelationBookmark())->where('relation_id', $relationId)->orWhere('sub_relation_id', $relationId)->delete();
     $relation->delete();
-    foreach($subRelations as $subRelation){
+    foreach ($subRelations as $subRelation) {
       $this->recursiveDeleteAll($subRelation['id']);
     }
     return true;
   }
-  public function trending(){
+  public function trending()
+  {
     $result = DB::select('call statements_trending');
     $this->responseGenerator->setSuccess($result);
     return $this->responseGenerator->generate();
   }
-  public function myList(){
+  public function myList()
+  {
     // $result = DB::select(
     //   DB::raw("SET @p0='" . $this->userSession('id') . "';")
     // );
@@ -822,7 +858,7 @@ class RelationController extends GenericController
     $relations = (new Relation())
       ->with([
         'statement',
-        'root_parent_relation' => function($query){
+        'root_parent_relation' => function ($query) {
           return $query->where('root_parent_relation.logic_tree_id', 'relations.logic_tree_id');
         }
       ])

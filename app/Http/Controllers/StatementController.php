@@ -13,14 +13,14 @@ use Illuminate\Support\Facades\DB;
 
 class StatementController extends GenericController
 {
-  function __construct(){
+  function __construct()
+  {
     $this->model = new App\Models\Statement();
     $this->tableStructure = [
-      'columns' => [
-      ],
+      'columns' => [],
       'foreign_tables' => [
         'logic_tree' => [
-          "is_child" => true, 
+          "is_child" => true,
           'validation_required' => false
         ],
         'relation' => [
@@ -42,19 +42,20 @@ class StatementController extends GenericController
     ];
     $this->initGenericController();
   }
-  public function create(Request $request){
+  public function create(Request $request)
+  {
     $entry = $request->all();
     $resultObject = [
       "success" => false,
       "fail" => false
     ];
-    if(isset($entry['text']) && (!isset($entry['id']) || !$entry['id'])){ // check if statement already exists
+    if (isset($entry['text']) && (!isset($entry['id']) || !$entry['id'])) { // check if statement already exists
       $statements = (new App\Models\Statement())
         // ->where(DB::raw("REGEXP_REPLACE(text, '[^a-z0-9]', '')"), "like", DB::raw("REGEXP_REPLACE('" . $entry['text'] . "', '[^a-z0-9]', '')") )
         ->where('text', "like", '%' . $entry['text'] . '%')
         ->get()->toArray();
-      if(count($statements)){ // statement already existed
-        
+      if (count($statements)) { // statement already existed
+
         $this->responseGenerator->setFail([
           "code" => 4,
           "message" => [
@@ -64,24 +65,24 @@ class StatementController extends GenericController
         return $this->responseGenerator->generate();
       }
     }
-    if(isset($entry['id']) && $entry['id']){
+    if (isset($entry['id']) && $entry['id']) {
       unset($entry['text']);
     }
     $validation = new GenericFormValidation($this->tableStructure, 'create');
-    if($validation->isValid($entry)){
+    if ($validation->isValid($entry)) {
       $relation = isset($entry['relation']) ? $entry['relation'] : null;
       unset($entry['relation']);
       $entry['user_id'] = $this->userSession('id');
-      if(isset($entry['is_public']) && $entry['is_public']){
+      if (isset($entry['is_public']) && $entry['is_public']) {
         $entry['published_at'] = date('Y-m-d H:i:s');
-      }else{
+      } else {
         $entry['published_at'] = null;
       }
       unset($entry['is_public']);
-      if(!isset($entry['id']) || !$entry['id']){
+      if (!isset($entry['id']) || !$entry['id']) {
         $genericCreate = new GenericCreate($this->tableStructure, $this->model);
         $resultObject['success'] = $genericCreate->create($entry);
-      }else{ // create from existing statement
+      } else { // create from existing statement
         $existingStatement = (new App\Models\Statement())->find($entry['id'])->toArray();
         $logicTreeId = $this->createLogicTree($existingStatement);
         $resultObject['success'] = [
@@ -91,16 +92,16 @@ class StatementController extends GenericController
           ]
         ];
       }
-      if($resultObject['success']){
-        if($relation){
+      if ($resultObject['success']) {
+        if ($relation) {
           $relation['statement_id'] = $resultObject['success']['id'];
           $relation['published_at'] = $entry['published_at'];
-          if(!isset($relation['logic_tree_id'])){
+          if (!isset($relation['logic_tree_id'])) {
             $relation['logic_tree_id'] = $resultObject['success']['logic_tree']['id'];
           }
           $relation['user_id'] = $this->userSession('id');
           $relationModel = new App\Models\Relation();
-          foreach($relation as $key => $value){
+          foreach ($relation as $key => $value) {
             $relationModel->$key = $value;
           }
           // if(isset($relation['parent_relation_id']) && $relation['parent_relation_id']){
@@ -111,89 +112,90 @@ class StatementController extends GenericController
           $resultObject['success']['created_at'] = date('Y-m-d H:i:s');
         }
       }
-    }else{
+    } else {
       $resultObject['fail'] = [
         "code" => 1,
         "message" => $validation->validationErrors
       ];
-
     }
     $this->responseGenerator->setSuccess($resultObject['success']);
     $this->responseGenerator->setFail($resultObject['fail']);
     return $this->responseGenerator->generate();
   }
-  public function updateRelation(Request $request){
+  public function updateRelation(Request $request)
+  {
     $entry = $request->all();
     $validator = Validator::make($entry, [
       'id' => 'exists:statements,id',
       'relation' => 'required',
       'relation.id' => 'exists:relations,id',
     ]);
-    if($validator->fails()){
+    if ($validator->fails()) {
       $this->responseGenerator->setFail([
         "code" => 1,
         "message" => $validator->errors()->toArray()
       ]);
-    }else{
+    } else {
       $updatedRelation = $entry['relation'];
       $relation = (new App\Models\Relation())->where('id', $updatedRelation['id'])->where('user_id', $this->userSession('id'))->get();
-      if(!count($relation)){
+      if (!count($relation)) {
         $this->responseGenerator->setFail([
           "code" => 2,
           "message" => "Statement not found or you do not own it"
         ]);
-      }else if(count($relation) && $relation[0]->published_at){
+      } else if (count($relation) && $relation[0]->published_at) {
         $this->responseGenerator->setFail([
           "code" => 3,
           "message" => 'You cannot modify published statements'
         ]);
-      }else{
+      } else {
         $relation = $relation[0];
         $notificationMessage = '';
         unset($entry['relation']);
         $statementModel = (new App\Models\Statement())->find($entry['id']);
-        if(isset($entry['id']) && !isset($entry['old_statement_id'])){ // if user did not select from suggestion. If old_statement_id exists it means the user choose a statement from suggestion
-          if($statementModel->text !== $entry['text']){ // update statement text
-            $notificationMessage = "Updated Statement from " . $statementModel->text.". ";
+        if (isset($entry['id']) && !isset($entry['old_statement_id'])) { // if user did not select from suggestion. If old_statement_id exists it means the user choose a statement from suggestion
+          if ($statementModel->text !== $entry['text']) { // update statement text
+            $notificationMessage = "Updated Statement from " . $statementModel->text . ". ";
             $statementModel->text = strip_tags($entry['text']);
           }
-          if($statementModel->statement_type_id !== $entry['statement_type_id']){
+          if ($statementModel->statement_type_id !== $entry['statement_type_id']) {
             $notificationMessage = $notificationMessage . "Changed statement type.";
             $statementModel->statement_type_id = $entry['statement_type_id'];
           }
-          if($statementModel->context_id !== $entry['context_id']){
+          if ($statementModel->context_id !== $entry['context_id']) {
             $notificationMessage = $notificationMessage . "Changed the context.";
             $statementModel->context_id = $entry['context_id'];
           }
           $statementModel->save();
           $relation->statement_id = $statementModel->id;
-        }else{ // only change the statement id. It means user select a suggestion
+        } else { // only change the statement id. It means user select a suggestion
           $relation->statement_id = $entry['id'];
           $notificationMessage = 'Changed statement from ' . $statementModel->text;
         }
         unset($updatedRelation['relevance_window']);
-        if(isset($updatedRelation['relation_type_id']) && $updatedRelation['relation_type_id'] !== $relation->relation_type_id){
+        if (isset($updatedRelation['relation_type_id']) && $updatedRelation['relation_type_id'] !== $relation->relation_type_id) {
           $notificationMessage .= "Changed Relation Type.";
         }
-        foreach($updatedRelation as $column => $value){
+        foreach ($updatedRelation as $column => $value) {
           $relation->$column = $value;
         }
         $relation->save();
-        // $notification = new App\Models\Notification();
-        // $notification->createRelationUpdateNotification($relation->id, $this->userSession('id'), $notificationMessage);
-        // $this->responseGenerator->setSuccess([
-        //   'id' => $relation->statement_id,
-        //   'relation' => [
-        //     'id' => $relation->id
-        //   ]
-        // ]);
+        $notification = new App\Models\Notification();
+        $notification->createRelationUpdateNotification($relation->id, $this->userSession('id'), $notificationMessage);
+        $this->responseGenerator->setSuccess([
+          'id' => $relation->statement_id,
+          'relation' => [
+            'id' => $relation->id
+          ]
+        ]);
       }
     }
-    
+
     return $this->responseGenerator->generate();
   }
-  public function update(Request $request){
-    if(!$this->checkAuthenticationRequirement($this->basicOperationAuthRequired["update"])){
+  public function update(Request $request)
+  {
+    if (!$this->checkAuthenticationRequirement($this->basicOperationAuthRequired["update"])) {
       return $this->responseGenerator->generate();
     }
     $entry = $request->all();
@@ -202,7 +204,7 @@ class StatementController extends GenericController
       "fail" => false
     ];
     $validation = new GenericFormValidation($this->tableStructure, 'update');
-    if($validation->isValid($entry)){
+    if ($validation->isValid($entry)) {
       $genericUpdate = new GenericUpdate($this->tableStructure, $this->model);
       $resultObject['success'] = $genericUpdate->update($entry);
       // $notificationMessage = "";
@@ -212,18 +214,18 @@ class StatementController extends GenericController
       //   $notificationMessage .= 'Statement has been updated.';
       // }
       // (new App\Models\Notification())->createStatementUpdateNotification($entry['id'], null, $this->userSession('id'), $notificationMessage);
-    }else{
+    } else {
       $resultObject['fail'] = [
         "code" => 1,
         "message" => $validation->validationErrors
       ];
-
     }
     $this->responseGenerator->setSuccess($resultObject['success']);
     $this->responseGenerator->setFail($resultObject['fail']);
     return $this->responseGenerator->generate();
   }
-  private function createLogicTree($statement){
+  private function createLogicTree($statement)
+  {
     $logicTreeModel = new App\Models\LogicTree();
     $logicTreeModel->user_id = $this->userSession('id');
     $logicTreeModel->name = $statement['text'];
@@ -232,7 +234,5 @@ class StatementController extends GenericController
     $logicTreeModel->save();
     return $logicTreeModel->id;
   }
-  public function retrieveTree(Request $request){
-
-  }
+  public function retrieveTree(Request $request) {}
 }

@@ -1,0 +1,93 @@
+.nk-content {
+	 background: white;
+}
+.nk-menu-link:hover,  .active>.nk-menu-link {
+    background: #2f3741e0 !important;
+    color: white !important;
+}
+
+.nk-menu-link:hover .nk-menu-icon, .nk-menu-item.active > .nk-menu-link .nk-menu-icon, .nk-menu-item.current-menu > .nk-menu-link .nk-menu-icon {
+    color: white;
+}
+.nk-menu{
+	padding: 8px 12px 8px 12px
+}
+.nk-menu-link {
+    padding: 0.625rem 28px 0.625rem 12px;
+    color: #6e82a5;
+    font-family: "DM Sans",sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: .01em;
+    text-transform: none;
+    line-height: 1.25rem;
+    border-radius: 6px;
+}
+.nkchatbody{
+    position: relative;
+    opacity: 1;
+    pointer-events: auto;
+    max-height: calc(116vh - (65px + 112px));
+}
+.kanban-item {
+    border-radius: 4px;
+    border: 1px solid #e5e9f2;
+    padding: 1rem 0.8rem;
+    margin-bottom: 0.75rem;
+    background: #fff;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+   #box {
+    opacity: 1;
+    background-color: #626262a6;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 66%;
+    width: 100%;
+    text-align: center;
+}
+.card { border-radius: 12px; }
+.tb-ticket-id a, .tb-ticket-desc a {
+    display: block;
+    padding: 0.50rem 0;
+    color: inherit;
+}
+.tb-ticket-item .date, .tb-ticket-item .date-last {
+    white-space: nowrap;
+}
+.card .table tr:first-child th, .card .table tr:first-child td {
+    border-top: none;
+}
+
+.tb-ticket-item td {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+.tb-ticket-item td, .tb-ticket-item th {
+    vertical-align: middle;
+}
+.table th, .table td {
+    
+    border-top: 1px solid #dbdfea;
+}
+.tb-ticket-date, .tb-ticket-seen, .tb-ticket-status {
+    width: 115px;
+}
+.tb-ticket-item .date, .tb-ticket-item .date-last {
+    white-space: nowrap;
+}
+.tb-ticket-item.is-unread {
+    background: #f5f6fa;
+}
+@media (min-width: 768px){
+.tb-col-md {
+    display: table-cell !important;
+}
+}
+@media only screen and (max-width: 600px) {
+  .col-sm-4{
+    flex: 0 0 33.33333%;
+    max-width: 33.33333%;
+}
+}
