@@ -1,5 +1,5 @@
 @extends('admin.layout.app')
-@section('title', 'Support')
+@section('title', 'Users')
 @section('content')
 
 <div class="nk-content ">
@@ -24,6 +24,7 @@
                                              </button>
                                          </div>
                                          @endif
+                                         <a href="{{ url('admin/users/add') }}" class="btn btn-primary">Add New User</a>
                                       </div>
                                    </div>
                                    <div class="nk-block">
@@ -106,7 +107,7 @@
                                                                  <div class="dropdown-menu dropdown-menu-end">
                                                                     <ul class="link-list-opt no-bdr">
                                                                        <li><a href="{{ url('admin/user/'.$user->id) }}"><em class="icon ni ni-eye"></em><span>View Details</span></a></li>
-                                                                       <li><a href="#"><em class="icon ni ni-edit"></em><span>Edit</span></a></li>
+                                                                       <li><a href="{{ url('admin/user/update/'.$user->id) }}"><em class="icon ni ni-edit"></em><span>Edit</span></a></li>
                                                                        <li><a href="{{ url('admin/user/update-password/'.$user->id) }}"><em class="icon ni ni-lock-alt"></em><span>Change Password</span></a></li>
                                                                        @if($user->status == '1')
                                                                        <li><a href="{{ url('admin/user/change-status/'.$user->id.'?status=0') }}" onclick="return confirm('Are you sure you want to suspend this account?');" title="Suspend Account"><em class="icon ni ni-na"></em><span>Suspend Account</span></a></li>

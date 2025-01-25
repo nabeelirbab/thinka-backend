@@ -22,6 +22,12 @@ class UserBasicInformation extends GenericModel
     return $entry;
   }
 
+  protected $fillable = [
+    'first_name',
+    'middle_name',
+    'last_name',
+    'user_id',
+  ];
   public function getFullNameAttribute()
   {
     return "{$this->last_name} {$this->first_name}";

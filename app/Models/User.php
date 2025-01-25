@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+
 use App\Generic\GenericModel as GenericModel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,60 +11,65 @@ use Illuminate\Support\Facades\Hash;
 
 class User extends GenericModel
 {
-    use HasFactory, Notifiable;
+  use HasFactory, Notifiable;
 
-    // protected $fillable = ['user_id', 'first_name', 'middle_name', 'last_name', 'mobile_number', 'gender', 'birthdate', 'occupation'];
-    protected $validationRules = [
-      'username' => 'required|alpha_num|unique:users,username,except,id',
-      'email' => 'required|email|unique:users,email,except,id',
-      'password' => 'required|min:3',
-      'pin' => 'required|size:4'
-    ];
-    protected $defaultValue = [
-      'middle_name' => ''
-    ];
-    protected $validationRuleNotRequired = ['middle_name', 'status', 'user_type_id'];
-    public function systemGenerateValue($data){
-      // (isset($data['email'])) ? $data['username'] = $data['email'] : null;
-      (isset($data['password'])) ? $data['password'] = Hash::make($data['password']) : null;
-      if((!isset($data['id']) || $data['id'] == 0) && !isset($data['status'])){ // if create
-        $data['status'] = 1;
-      }
-      return $data;
+  // protected $fillable = ['user_id', 'first_name', 'middle_name', 'last_name', 'mobile_number', 'gender', 'birthdate', 'occupation'];
+  protected $validationRules = [
+    'username' => 'required|alpha_num|unique:users,username,except,id',
+    'email' => 'required|email|unique:users,email,except,id',
+    'password' => 'required|min:3',
+    'pin' => 'required|size:4'
+  ];
+  protected $defaultValue = [
+    'middle_name' => ''
+  ];
+  protected $validationRuleNotRequired = ['middle_name', 'status', 'user_type_id'];
+  public function systemGenerateValue($data)
+  {
+    // (isset($data['email'])) ? $data['username'] = $data['email'] : null;
+    (isset($data['password'])) ? $data['password'] = Hash::make($data['password']) : null;
+    if ((!isset($data['id']) || $data['id'] == 0) && !isset($data['status'])) { // if create
+      $data['status'] = 1;
     }
-    public function user_basic_information(){
-      return $this->hasOne('App\Models\UserBasicInformation');
-    }
-    public function user_profile_photo(){
-      return $this->hasOne('App\Models\UserProfilePhoto');
-    }
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    return $data;
+  }
+  public function user_basic_information()
+  {
+    return $this->hasOne('App\Models\UserBasicInformation');
+  }
+  public function user_profile_photo()
+  {
+    return $this->hasOne('App\Models\UserProfilePhoto');
+  }
+  /**
+   * The attributes that are mass assignable.
+   *
+   * @var array
+   */
+  protected $fillable = [
+    'username',
+    'email',
+    'password',
+    'pin',
+    'status',
+  ];
 
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+  /**
+   * The attributes that should be hidden for arrays.
+   *
+   * @var array
+   */
+  protected $hidden = [
+    'password',
+    'remember_token',
+  ];
 
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+  /**
+   * The attributes that should be cast to native types.
+   *
+   * @var array
+   */
+  protected $casts = [
+    'email_verified_at' => 'datetime',
+  ];
 }

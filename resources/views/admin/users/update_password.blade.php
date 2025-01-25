@@ -15,7 +15,7 @@
                       @endforeach
                   </ul>
               </div>
-          @endif
+              @endif
             <div class="row d-flex justify-center" style="margin: 3.3rem 0rem 2rem 0">
           
                 <div class="col-lg-6 ">

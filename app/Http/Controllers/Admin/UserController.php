@@ -10,8 +10,41 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
 
+use function PHPSTORM_META\map;
+
 class UserController extends Controller
 {
+    public function register(Request $request)
+    {
+        if ($request->isMethod('post')) {
+
+            $request->validate([
+                'username' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                'password' => ['required', 'string', 'min:6', 'confirmed'],
+                'first_name' => ['required', 'string', 'max:255'],
+                'last_name' => ['required', 'string', 'max:255'],
+            ]);
+
+            $user = User::create([
+                'username' => $request->username,
+                'email' => $request->email,
+                'password' => Hash::make($request->password), // Hashing the password
+                'status' => 1, // Hashing the password
+                'pin' => 1234, // Hashing the password
+            ]);
+
+            // Is user ke sath related basic information create karein
+            $user->user_basic_information()->create([
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+            ]);
+
+            return redirect()->route('admin.users')->with('success', 'User created successfully!');
+        } else {
+            return view('admin.users.add');
+        }
+    }
     public function login(Request $request)
     {
         if ($request->isMethod('post')) {
@@ -49,7 +82,7 @@ class UserController extends Controller
      */
     public function manageUsers()
     {
-        $users = User::with('user_profile_photo', 'user_basic_information')->paginate(8); // Retrieve all users from the database
+        $users = User::with('user_profile_photo', 'user_basic_information')->orderBy('id', 'desc')->paginate(8); // Retrieve all users from the database
         return view('admin.users.index', compact('users'));
     }
 
@@ -58,10 +91,40 @@ class UserController extends Controller
         $user = User::with('user_profile_photo', 'user_basic_information')->where('id', $id)->first();
         return view('admin.users.details', compact('user'));
     }
-    public function editUser($id)
+    public function editUser(Request $request, $id)
     {
-        $user = User::find($id);
-        return view('admin.users.edit', compact('user'));
+        if ($request->isMethod('POST')) {
+            // Validation
+            $request->validate([
+                'username' => ['required', 'string', 'max:255'],
+                'first_name' => ['required', 'string', 'max:255'],
+                'last_name' => ['required', 'string', 'max:255'],
+            ]);
+
+            // Find the user by ID
+            $user = User::findOrFail($id);
+
+            // Update user data
+            $user->update([
+                'username' => $request->username,
+                'status' => $request->status ?? $user->status, // Keep existing status if not provided
+                'pin' => $request->pin ?? $user->pin, // Keep existing pin if not provided
+            ]);
+
+            // Update or create user basic information
+            $user->user_basic_information()->updateOrCreate(
+                [],
+                [
+                    'first_name' => $request->first_name,
+                    'middle_name' => $request->middle_name,
+                    'last_name' => $request->last_name,
+                ]
+            );
+            return redirect()->route('admin.users')->with('success', 'User Update successfully!');
+        } else {
+            $user = User::with('user_profile_photo', 'user_basic_information')->find($id);
+            return view('admin.users.edit', compact('user'));
+        }
     }
 
     public function updateUserDetails(Request $request, $id)
