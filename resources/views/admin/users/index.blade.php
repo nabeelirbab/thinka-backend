@@ -44,11 +44,12 @@
                                                </div>
                                                <div class="card-search search-wrap" data-search="search">
                                                   <div class="card-body">
-                                                     <div class="search-content"><a href="#" class="search-back btn btn-icon toggle-search" data-target="search"><em class="icon ni ni-arrow-left"></em></a><input type="text" class="form-control border-transparent form-focus-none" placeholder="Search by name"><button class="search-submit btn btn-icon"><em class="icon ni ni-search"></em></button></div>
+                                                     <div class="search-content"><a href="#" class="search-back btn btn-icon toggle-search" data-target="search"><em class="icon ni ni-arrow-left"></em></a>
+                                                      <input type="text" class="form-control border-transparent form-focus-none" placeholder="Search by id, first, last name or email" id="search"><button class="search-submit btn btn-icon"><em class="icon ni ni-search"></em></button></div>
                                                   </div>
                                                </div>
                                             </div>
-                                            <div class="card-inner p-0">
+                                            <div class="card-inner p-0" id="result">
                                                <div class="nk-tb-list nk-tb-ulist">
                                                   <div class="nk-tb-item nk-tb-head">
                                                    
@@ -142,6 +143,26 @@
 
 @endsection
 @section('script')
+<script>
+   $("#search").on("keyup", function() {
+        
+        var value = $(this).val();
+        var _token = $('meta[name="csrf-token"]').attr('content');
+        $.ajax({
+        url: "{{ url('admin/user-search')}}",
+        type: "post",
+        data: {search: value},
+        success: function (response) {
+        console.log(response);
+        $('#result').html(response);
+        },
+        error: function (xhr) {
 
+        }
+
+        });
+     });
+
+</script>
 
 @endsection

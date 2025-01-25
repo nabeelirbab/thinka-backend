@@ -26,6 +26,7 @@ Route::middleware(['custom.auth', 'admin'])->group(function () {
   Route::match(['get', 'post'], '/admin/user/update-password/{id}', [UserController::class, 'updateUserPassword']);
   Route::match(['get', 'post'], '/admin/user/update/{id}', [UserController::class, 'editUser']);
   Route::match(['get', 'post'], '/admin/users/add', [UserController::class, 'register']);
+  Route::match(['get', 'post'], '/admin/user-search', [UserController::class, 'searchUser']);
 
   Route::delete('/admin/users/{id}', [UserController::class, 'deleteUser'])->name('admin.users.delete');
   Route::get('/admin/logout', [UserController::class, 'logout'])->name('admin.logout');

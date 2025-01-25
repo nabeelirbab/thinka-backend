@@ -1,5 +1,5 @@
 @extends('admin.layout.app')
-@section('title', 'Edit Relation Type')
+@section('title', 'Edit Statement Type')
 @section('content')
 
 <div class="nk-content ">

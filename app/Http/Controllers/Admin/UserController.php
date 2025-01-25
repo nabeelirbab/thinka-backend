@@ -161,27 +161,22 @@ class UserController extends Controller
         }
     }
 
-    public function createUser()
+    public function searchUser(Request $request)
     {
-        return view('admin.users.create');
-    }
-    public function storeUser(Request $request)
-    {
-        $this->validate($request, [
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
-        ]);
+        $keyword = $request->input('search');
+        if ($keyword == '') {
+            $users = User::with('user_profile_photo', 'user_basic_information')->orderBy('id', 'desc')->paginate(8);
+        } else {
+            $users = User::with('user_profile_photo', 'user_basic_information')->where(function ($query) use ($keyword) {
+                $query->orWhere('id', 'like', '%' . $keyword . '%')
+                    ->orWhere('email', 'like', '%' . $keyword . '%');
+            })->orWhereHas('user_basic_information', function ($query) use ($keyword) {
+                $query->where('first_name', 'like', '%' . $keyword . '%') // Replace 'name' with the relevant column in user_basic_information
+                    ->orWhere('last_name', 'like', '%' . $keyword . '%'); // Add more fields as needed
+            })->paginate(10);
+        }
 
-        $user = new User();
-        $user->first_name = $request->first_name;
-        $user->last_name = $request->last_name;
-        $user->email = $request->email;
-        $user->password = Hash::make($request->password);
-        $user->save();
-
-        return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
+        return view('admin.users.search', compact('users'));
     }
 
 
