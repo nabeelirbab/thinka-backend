@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\CompanyUser;
 use App\Models\User;
+use App\Models\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -17,10 +19,9 @@ class UserController extends Controller
     public function register(Request $request)
     {
         if ($request->isMethod('post')) {
-
             $request->validate([
-                'username' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                'username' => ['required', 'unique:users'],
+                'email' => ['required', 'email', 'unique:users', 'email'],
                 'password' => ['required', 'string', 'min:6', 'confirmed'],
                 'first_name' => ['required', 'string', 'max:255'],
                 'last_name' => ['required', 'string', 'max:255'],
@@ -39,6 +40,18 @@ class UserController extends Controller
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
             ]);
+
+            CompanyUser::create([
+                "user_id" => $user->id,
+                "company_id" => 1,
+                "status" => 1,
+            ]);
+            UserRole::create([
+                "user_id" => $user->id,
+                "role_id" => 101,
+                "company_id" => 1,
+            ]);
+
 
             return redirect()->route('admin.users')->with('success', 'User created successfully!');
         } else {

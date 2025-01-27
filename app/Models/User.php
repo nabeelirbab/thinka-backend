@@ -23,7 +23,7 @@ class User extends GenericModel
   protected $defaultValue = [
     'middle_name' => ''
   ];
-  protected $validationRuleNotRequired = ['middle_name', 'status', 'user_type_id'];
+  protected $validationRuleNotRequired = ['middle_name', 'status', 'user_type_id', 'is_admin'];
   public function systemGenerateValue($data)
   {
     // (isset($data['email'])) ? $data['username'] = $data['email'] : null;
