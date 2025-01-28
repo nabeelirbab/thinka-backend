@@ -27,8 +27,8 @@
                     <div class="nk-block nk-block-middle nk-auth-body  wide-xs">
                         <div class="brand-logo pb-4 text-center">
                             <a href="{{url('customer/login')}}" class="logo-link">
-                                <img class="logo-light logo-img logo-img-lg" src="{{asset('frontend-assets/assets/logo/logo.png') }}" srcset="{{asset('/images/logo2x.png 2x') }}" alt="logo">
-                                <img class="logo-dark logo-img logo-img-lg" src="{{asset('frontend-assets/assets/logo/logo.png') }}" srcset="{{asset('/images/logo-dark2x.png 2x') }}" alt="logo-dark">
+                                <img class="logo-light logo-img logo-img-lg" src="{{asset('frontend-assets/assets/logo/logo.png') }}" srcset="{{asset('frontend-assets/assets/logo/logo.png 2x') }}" alt="logo">
+                                <img class="logo-dark logo-img logo-img-lg" src="{{asset('frontend-assets/assets/logo/logo.png') }}" srcset="{{asset('frontend-assets/assets/logo/logo.png 2x') }}" alt="logo-dark">
                             </a>
                         </div>
                         <div class="card">

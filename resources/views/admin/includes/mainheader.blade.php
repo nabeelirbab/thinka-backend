@@ -16,14 +16,8 @@
                                 <ul class="nk-quick-nav">
                                
                                     <li class="dropdown user-dropdown">
-                                        <a href="#" class="dropdown-toggle mr-n1" data-toggle="dropdown">
-                                            <div class="user-toggle">
-                                                <div class="user-avatar sm">
-                                                    <em class="icon ni ni-user-alt"></em>
-                                                </div>
-                                            </div>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-md dropdown-menu-right">
+                                      <a href="#" class="dropdown-toggle me-lg-n1" data-bs-toggle="dropdown" aria-expanded="false"><div class="user-toggle"><div class="user-avatar sm"><em class="icon ni ni-user-alt"></em></div></div></a>
+                                        <div class="dropdown-menu dropdown-menu-md dropdown-menu-end dropdown-menu-s1">
                                             <div class="dropdown-inner user-card-wrap bg-lighter">
                                                 <div class="user-card">
                                                     <div class="user-avatar">
