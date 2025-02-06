@@ -17,46 +17,46 @@ use Illuminate\Support\Facades\Route;
 /*Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });*/
-$api_resource = function($apiResource){
-  $apiResources = (is_array($apiResource))? $apiResource : [$apiResource];
+
+$api_resource = function ($apiResource) {
+  $apiResources = (is_array($apiResource)) ? $apiResource : [$apiResource];
   $namepace = 'App\Http\Controllers\\';
-  foreach($apiResources as $apiResourceValue){
-    $pascalCase = preg_replace_callback("/(?:^|-)([a-z])/", function($matches) {
-        return strtoupper($matches[1]);
+  foreach ($apiResources as $apiResourceValue) {
+    $pascalCase = preg_replace_callback("/(?:^|-)([a-z])/", function ($matches) {
+      return strtoupper($matches[1]);
     }, $apiResourceValue) . 'Controller';
-    Route::get($apiResourceValue."/", $namepace . $pascalCase."@index");
-    Route::get($apiResourceValue."/test", $namepace . $pascalCase."@test");
-    Route::post($apiResourceValue."/create", $namepace . $pascalCase."@create");
-    Route::post($apiResourceValue."/retrieve", $namepace . $pascalCase."@retrieve");
-    Route::post($apiResourceValue."/update", $namepace . $pascalCase."@update");
-    Route::post($apiResourceValue."/delete", $namepace . $pascalCase."@delete");
+    Route::get($apiResourceValue . "/", $namepace . $pascalCase . "@index");
+    Route::get($apiResourceValue . "/test", $namepace . $pascalCase . "@test");
+    Route::post($apiResourceValue . "/create", $namepace . $pascalCase . "@create");
+    Route::post($apiResourceValue . "/retrieve", $namepace . $pascalCase . "@retrieve");
+    Route::post($apiResourceValue . "/update", $namepace . $pascalCase . "@update");
+    Route::post($apiResourceValue . "/delete", $namepace . $pascalCase . "@delete");
   }
 };
-$custom_api = function($customAPIResource, $method = 'post'){
+$custom_api = function ($customAPIResource, $method = 'post') {
   $namepace = 'App\Http\Controllers\\';
-  for($x = 0; $x < count($customAPIResource); $x++){
+  for ($x = 0; $x < count($customAPIResource); $x++) {
     $customAPI = $customAPIResource[$x];
     $splitAPI = explode('/', $customAPIResource[$x]);
-    $pascalCase = preg_replace_callback("/(?:^|-)([a-z])/", function($matches) {
+    $pascalCase = preg_replace_callback("/(?:^|-)([a-z])/", function ($matches) {
       return strtoupper($matches[1]);
     }, $splitAPI[0]) . 'Controller';
     $functionCamelCase = str_replace('-', '', lcfirst(ucwords($splitAPI[1], '-')));
-    if($method == 'post'){
+    if ($method == 'post') {
       Route::post($customAPI, $namepace . $pascalCase . "@" . $functionCamelCase);
-    }else{
-      Route::get($customAPI, $namepace . $pascalCase . "@". $functionCamelCase);
+    } else {
+      Route::get($customAPI, $namepace . $pascalCase . "@" . $functionCamelCase);
     }
   }
 };
 
-Route::get('/', function(){
+Route::get('/', function () {
   echo str_plural('registry');
   echo 'API GET';
 });
-Route::group([
-], function ($router) {
+Route::group([], function ($router) {
   $namepace = 'App\Http\Controllers\\';
-  Route::get('/', function(){
+  Route::get('/', function () {
     echo 'Auth';
   });
   Route::post('login', $namepace . 'AuthController@login');
@@ -110,4 +110,3 @@ $customAPIResources = [
 ];
 $api_resource($apiResource);
 $custom_api($customAPIResources);
-
