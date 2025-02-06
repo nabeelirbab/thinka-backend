@@ -45,6 +45,7 @@ class StatementController extends GenericController
   public function create(Request $request)
   {
     $entry = $request->all();
+    // return 'testing backend ';
     $resultObject = [
       "success" => false,
       "fail" => false
@@ -110,6 +111,12 @@ class StatementController extends GenericController
           $relationModel->save();
           $resultObject['success']['relation']['id'] = $relationModel->id;
           $resultObject['success']['created_at'] = date('Y-m-d H:i:s');
+
+            // Create UserRelationBookmark
+            $userRelationBookmark = new App\Models\UserRelationBookmark();
+            $userRelationBookmark->user_id = $this->userSession('id');
+            $userRelationBookmark->relation_id = $relationModel->id;
+            $userRelationBookmark->save();
         }
       }
     } else {
