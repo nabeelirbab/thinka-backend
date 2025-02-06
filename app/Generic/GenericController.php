@@ -73,8 +73,10 @@ class GenericController extends Controller
         $request Request required the request object
     */
     public function create(Request $request){
+      // return $request->all();
       $requestData = $request->all();
       $resultObject = $this->createUpdateEntry($requestData);
+      // return $resultObject;
       $this->responseGenerator->setSuccess($resultObject['success']);
       $this->responseGenerator->setFail($resultObject['fail']);
       return $this->responseGenerator->generate();

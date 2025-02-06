@@ -82,7 +82,7 @@ $apiResource = [
   'scope',
   'relation',
   'user-relation-bookmark',
-  'user-relation-context-lock',
+  // 'user-relation-context-lock',
   'notification-user',
   'opinion',
   'context',
