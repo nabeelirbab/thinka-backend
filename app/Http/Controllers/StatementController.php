@@ -112,11 +112,20 @@ class StatementController extends GenericController
           $resultObject['success']['relation']['id'] = $relationModel->id;
           $resultObject['success']['created_at'] = date('Y-m-d H:i:s');
 
-            // Create UserRelationBookmark
-            $userRelationBookmark = new App\Models\UserRelationBookmark();
-            $userRelationBookmark->user_id = $this->userSession('id');
+          // Create UserRelationBookmark
+          $userRelationBookmark = new App\Models\UserRelationBookmark();
+          $userRelationBookmark->user_id = $this->userSession('id');
+
+          if (isset($relation['parent_relation_id']) && $relation['parent_relation_id']) {
+            // If parent_relation_id exists, set it in relation_id and new relation in sub_relation_id
+            $userRelationBookmark->relation_id = $relation['parent_relation_id'];
+            $userRelationBookmark->sub_relation_id = $relationModel->id;
+          } else {
+            // Otherwise, set the newly created relation ID as relation_id
             $userRelationBookmark->relation_id = $relationModel->id;
-            $userRelationBookmark->save();
+          }
+
+          $userRelationBookmark->save();
         }
       }
     } else {
