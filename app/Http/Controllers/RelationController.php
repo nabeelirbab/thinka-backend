@@ -234,7 +234,7 @@ class RelationController extends GenericController
       'user_opinions',
       'user_opinions.opinion_calculated_column',
       'all_user_relation_bookmarks' => function ($query) {
-        $query->with(['user']);
+        $query->with(['user'])->whereNull('sub_relation_id');
       },
       'all_user_sub_relation_bookmarks' => function ($query) {
         $query->with(['user']);
