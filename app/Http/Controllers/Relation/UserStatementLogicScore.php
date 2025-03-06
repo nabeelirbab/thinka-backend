@@ -9,6 +9,7 @@ class UserStatementLogicScore
   public function calculateUserStatementLogicScore($statementIds)
   {
     $userStatementLogicScores = (new App\Models\UserStatementLogicScore())->whereIn('statement_id', array_unique($statementIds))->get()->toArray();
+    // return $userStatementLogicScores;
     $userLogicScores = [];
     foreach ($userStatementLogicScores as $userStatementLogicScore) {
       $userId = $userStatementLogicScore['user_id'];
@@ -38,11 +39,14 @@ class UserStatementLogicScore
       if ($userLogicScores[$userId]['min_opinion_score_truth'] == NULL || $userStatementLogicScore['min_opinion_score_truth'] < $userLogicScores[$userId]['min_opinion_score_truth']) {
         $userLogicScores[$userId]['min_opinion_score_truth'] = $userStatementLogicScore['min_opinion_score_truth'];
       }
-      if ($userLogicScores[$userId]['flag'] === 0 || $userLogicScores[$userId]['flag'] == $userStatementLogicScore['flag']) { // if flags are the same
+      if (!isset($userLogicScores[$userId]['flag'])) {
         $userLogicScores[$userId]['flag'] = $userStatementLogicScore['flag'];
-      } else if ($userLogicScores[$userId]['flag'] != $userStatementLogicScore['flag'] && $userStatementLogicScore['flag'] !== 0) { // if flags are contradicting
+    } else if ($userLogicScores[$userId]['flag'] != $userStatementLogicScore['flag'] && $userStatementLogicScore['flag'] !== 0) { 
+        // If different non-zero flags appear, mark as contradictory
         $userLogicScores[$userId]['flag'] = 3;
-      }
+    } 
+    
+    
     }
     $userIdList = [];
     foreach ($userLogicScores as $userId => $userLogicScore) {

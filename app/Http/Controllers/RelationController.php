@@ -273,7 +273,7 @@ class RelationController extends GenericController
       foreach ($relations as $relationKey => $relation) {
         $relationIdList[] = $relation['id'] * 1;
         $relationIdLookUp[$relation['id']] = $relationKey;
-        $relations[$relationKey]['relations'] = [];
+        // $relations[$relationKey]['relations'] = [];
         $relations[$relationKey]['sub_relation_statement_id_list'] = array(); // object of statement ids, contains all the statement ids of the sub relations
         $relations[$relationKey]['virtual_relation'] = null;
         if ($relation['virtual_relation_id'] != null) {
