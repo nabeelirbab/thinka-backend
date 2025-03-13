@@ -38,13 +38,14 @@ class UserStatementLogicScore
       }
       if ($userLogicScores[$userId]['min_opinion_score_truth'] == NULL || $userStatementLogicScore['min_opinion_score_truth'] < $userLogicScores[$userId]['min_opinion_score_truth']) {
         $userLogicScores[$userId]['min_opinion_score_truth'] = $userStatementLogicScore['min_opinion_score_truth'];
-      }
-      if (!isset($userLogicScores[$userId]['flag'])) {
-        $userLogicScores[$userId]['flag'] = $userStatementLogicScore['flag'];
-    } else if ($userLogicScores[$userId]['flag'] != $userStatementLogicScore['flag'] && $userStatementLogicScore['flag'] !== 0) { 
-        // If different non-zero flags appear, mark as contradictory
-        $userLogicScores[$userId]['flag'] = 3;
-    } 
+      }if ($userLogicScores[$userId]['flag'] === 0 || $userLogicScores[$userId]['flag'] == $userStatementLogicScore['flag']) { 
+      // if flags are the same, keep it
+      $userLogicScores[$userId]['flag'] = $userStatementLogicScore['flag'];
+  } else if ($userLogicScores[$userId]['flag'] != $userStatementLogicScore['flag'] && $userStatementLogicScore['flag'] !== 0) { 
+      // if flags are contradicting
+      $userLogicScores[$userId]['flag'] = 3;
+  }
+  
     
     
     }
